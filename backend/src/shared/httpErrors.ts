@@ -14,3 +14,11 @@ export function sendBadRequest(res: Response, details: string[]): void {
 export function sendNotFound(res: Response, what: string): void {
   res.status(404).json({ error: `${what} not found` });
 }
+
+/**
+ * 409: the request is valid, but the current data does not allow it,
+ * e.g. deleting a customer that still has interactions.
+ */
+export function sendConflict(res: Response, message: string): void {
+  res.status(409).json({ error: message });
+}

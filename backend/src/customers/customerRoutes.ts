@@ -8,7 +8,11 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { parseId } from "../shared/parseId.js";
-import { sendBadRequest, sendNotFound } from "../shared/httpErrors.js";
+import {
+  sendBadRequest,
+  sendConflict,
+  sendNotFound,
+} from "../shared/httpErrors.js";
 import {
   validateCreateCustomer,
   validateUpdateCustomer,
@@ -85,7 +89,7 @@ customerRouter.patch("/:id", async (req, res) => {
 });
 
 // DELETE /customers/:id -> remove a customer; 204 means "done, nothing to send back".
-// TODO (later step): refuse to delete customers that still have interactions or follow-ups.
+// A customer that still has interactions is NOT deleted (409), so history is never lost.
 customerRouter.delete("/:id", async (req, res) => {
   const id = parseId(req.params.id);
   if (id === null) {
@@ -96,6 +100,17 @@ customerRouter.delete("/:id", async (req, res) => {
   const existing = await prisma.customer.findUnique({ where: { id } });
   if (existing === null) {
     sendNotFound(res, "Customer");
+    return;
+  }
+
+  // This check gives a friendly message. The database's ON DELETE RESTRICT
+  // rule is the second safety net if an interaction is added in between.
+  // TODO (follow-ups step): also refuse when the customer has follow-ups.
+  const interactionCount = await prisma.interaction.count({
+    where: { customerId: id },
+  });
+  if (interactionCount > 0) {
+    sendConflict(res, "Customer still has interactions; delete them first");
     return;
   }
 

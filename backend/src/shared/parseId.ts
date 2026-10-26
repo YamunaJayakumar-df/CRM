@@ -20,8 +20,23 @@ export function parseId(raw: string): number | null {
   }
 
   const id = Number(raw);
-  if (id < 1 || id > MAX_DATABASE_INT) {
+  if (!isValidId(id)) {
     return null;
   }
   return id;
+}
+
+/**
+ * True if `value` is a JSON number that could be a real database id:
+ * a whole number from 1 to 2147483647. Used for ids sent inside a JSON body
+ * (e.g. an interaction's customerId), where the value is already a number.
+ * Strings like "12", decimals, 0, negatives, NaN and Infinity all give false.
+ */
+export function isValidId(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 1 &&
+    value <= MAX_DATABASE_INT
+  );
 }

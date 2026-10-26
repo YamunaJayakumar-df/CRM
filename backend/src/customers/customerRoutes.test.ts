@@ -20,6 +20,10 @@ vi.mock("../db.js", () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    // DELETE /customers/:id counts the customer's interactions first.
+    interaction: {
+      count: vi.fn(),
+    },
   },
 }));
 
@@ -29,6 +33,7 @@ const findUnique = vi.mocked(prisma.customer.findUnique);
 const create = vi.mocked(prisma.customer.create);
 const update = vi.mocked(prisma.customer.update);
 const deleteCustomer = vi.mocked(prisma.customer.delete);
+const countInteractions = vi.mocked(prisma.interaction.count);
 
 // A customer as Prisma would return it (dates are real Date objects)...
 const acme = {
@@ -237,13 +242,29 @@ describe("DELETE /customers/:id", () => {
   // Protects deleting: 204 "No Content" with an empty body.
   it("returns 204 with an empty body and deletes the customer", async () => {
     findUnique.mockResolvedValue(acme);
+    countInteractions.mockResolvedValue(0);
     deleteCustomer.mockResolvedValue(acme);
 
     const res = await request(createApp()).delete("/customers/1");
 
     expect(res.status).toBe(204);
     expect(res.text).toBe("");
+    expect(countInteractions).toHaveBeenCalledWith({ where: { customerId: 1 } });
     expect(deleteCustomer).toHaveBeenCalledWith({ where: { id: 1 } });
+  });
+
+  // Protects history: a customer with interactions is never deleted (409 Conflict).
+  it("returns 409 when the customer still has interactions and does not delete", async () => {
+    findUnique.mockResolvedValue(acme);
+    countInteractions.mockResolvedValue(3);
+
+    const res = await request(createApp()).delete("/customers/1");
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      error: "Customer still has interactions; delete them first",
+    });
+    expect(deleteCustomer).not.toHaveBeenCalled();
   });
 
   // Protects that bad ids are rejected before the database is asked.
@@ -256,6 +277,7 @@ describe("DELETE /customers/:id", () => {
       details: ["id must be a positive whole number"],
     });
     expect(findUnique).not.toHaveBeenCalled();
+    expect(countInteractions).not.toHaveBeenCalled();
     expect(deleteCustomer).not.toHaveBeenCalled();
   });
 
@@ -267,6 +289,7 @@ describe("DELETE /customers/:id", () => {
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: "Customer not found" });
+    expect(countInteractions).not.toHaveBeenCalled();
     expect(deleteCustomer).not.toHaveBeenCalled();
   });
 });

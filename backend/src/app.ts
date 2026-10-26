@@ -5,6 +5,7 @@
 // Only server.ts actually listens on a port.
 import express from "express";
 import { customerRouter } from "./customers/customerRoutes.js";
+import { interactionRouter } from "./interactions/interactionRoutes.js";
 import {
   handleInvalidJson,
   handleUnexpectedError,
@@ -30,8 +31,9 @@ export function createApp() {
     res.status(200).json({ ok: true });
   });
 
-  // Feature routes: every URL starting with /customers goes to customerRouter.
+  // Feature routes: every URL starting with /customers goes to customerRouter, etc.
   app.use("/customers", customerRouter);
+  app.use("/interactions", interactionRouter);
 
   // Error handlers must come LAST so they catch errors from everything above.
   app.use(handleInvalidJson);
