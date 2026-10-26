@@ -4,6 +4,7 @@
 // words too, so the icon is decoration (aria-hidden).
 import { CalendarDays, Mail, MessageSquare, Phone, StickyNote } from "lucide-react";
 import type { InteractionType } from "@/lib/api/types";
+import { interactionTypeTint } from "@/components/interactionTypeTints";
 
 type ActivityIconProps = {
   type: InteractionType;
@@ -11,19 +12,18 @@ type ActivityIconProps = {
 
 const iconProps = { size: 18, strokeWidth: 1.75, "aria-hidden": true } as const;
 
-// Full class names are written out so Tailwind can find them.
-const styles: Record<InteractionType, { icon: React.ReactNode; tint: string }> = {
-  CALL: { icon: <Phone {...iconProps} />, tint: "bg-avatar-blue text-avatar-blue-ink" },
-  EMAIL: { icon: <Mail {...iconProps} />, tint: "bg-avatar-violet text-avatar-violet-ink" },
-  MEETING: { icon: <CalendarDays {...iconProps} />, tint: "bg-avatar-teal text-avatar-teal-ink" },
-  NOTE: { icon: <StickyNote {...iconProps} />, tint: "bg-medium-bg text-medium-ink" },
+// The colours come from interactionTypeTints.ts (shared with the Interactions page).
+const icons: Record<InteractionType, React.ReactNode> = {
+  CALL: <Phone {...iconProps} />,
+  EMAIL: <Mail {...iconProps} />,
+  MEETING: <CalendarDays {...iconProps} />,
+  NOTE: <StickyNote {...iconProps} />,
 };
 
-// Used if the backend ever sends a type this frontend does not know yet.
-const fallbackStyle = { icon: <MessageSquare {...iconProps} />, tint: "bg-hover text-icon" };
-
 export default function ActivityIcon({ type }: ActivityIconProps) {
-  const { icon, tint } = styles[type] ?? fallbackStyle;
+  // Unknown type from the backend: a generic icon in grey.
+  const icon = icons[type] ?? <MessageSquare {...iconProps} />;
+  const tint = interactionTypeTint(type);
 
   return (
     <span

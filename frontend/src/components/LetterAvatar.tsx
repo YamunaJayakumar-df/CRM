@@ -2,10 +2,17 @@
 // "Acme Corp"), used instead of a logo. The tint is picked from a small
 // fixed list based on the whole name, so the same company always gets the
 // same colour, and companies starting with the same letter usually differ.
+// `size="sm"` gives a smaller 28px badge for compact rows (e.g. Kanban cards).
 import { initialsOf } from "@/lib/format/initials";
 
 type LetterAvatarProps = {
   name: string;
+  size?: "md" | "sm";
+};
+
+const sizeClasses = {
+  md: "h-10 w-10 text-sm",
+  sm: "h-7 w-7 text-xs",
 };
 
 // Full class names are written out so Tailwind can find them in this file.
@@ -26,12 +33,12 @@ function nameNumber(name: string): number {
   return total;
 }
 
-export default function LetterAvatar({ name }: LetterAvatarProps) {
+export default function LetterAvatar({ name, size = "md" }: LetterAvatarProps) {
   const tint = tints[nameNumber(name) % tints.length];
 
   return (
     <span
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium ${tint}`}
+      className={`flex shrink-0 items-center justify-center rounded-full font-medium ${sizeClasses[size]} ${tint}`}
       aria-hidden="true"
     >
       {initialsOf(name)}

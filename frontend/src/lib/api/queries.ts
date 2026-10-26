@@ -14,6 +14,7 @@ import type {
   FollowUp,
   FollowUpStatus,
   Interaction,
+  InteractionType,
 } from "./types";
 
 /** Filters for listFollowUps. Every field is optional; they combine with AND. */
@@ -28,10 +29,19 @@ export type FollowUpFilters = {
   limit?: number;
 };
 
-/** Filters for listInteractions. Every field is optional. */
+/** The backend's quick date ranges: today and the 6 / 29 / 89 days before (India). */
+export type InteractionDateRange = "7d" | "30d" | "90d";
+
+/** Filters for listInteractions. Every field is optional; they combine with AND. */
 export type InteractionFilters = {
   customerId?: number;
-  /** Maximum number of rows to return (newest first). */
+  /** Only this kind of interaction (call, email, meeting or note). */
+  type?: InteractionType;
+  /** Search text, matched against the summary and the company name. */
+  q?: string;
+  /** Only interactions in this quick date range. Leave out for all time. */
+  range?: InteractionDateRange;
+  /** Maximum number of rows to return (newest first, 1 to 500). */
   limit?: number;
 };
 
@@ -83,6 +93,9 @@ export function listInteractions(
 ): Promise<Interaction[]> {
   const query = buildQueryString({
     customerId: filters.customerId,
+    type: filters.type,
+    q: filters.q,
+    range: filters.range,
     limit: filters.limit,
   });
   return backendGet<Interaction[]>(`/interactions${query}`);
