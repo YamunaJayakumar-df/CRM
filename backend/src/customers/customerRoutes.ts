@@ -1,7 +1,7 @@
 // HTTP routes for customers: list, read one, create, update, delete.
 //
 // Why a separate file: app.ts only "mounts" this router at /customers, so all
-// customer URLs live together here. Interactions and follow-ups will copy this
+// customer URLs live together here. Interactions and follow-ups use this
 // same pattern: check the id -> validate the body -> call Prisma -> send JSON.
 //
 // NOTE: no login/permission checks yet; they are added in the later Auth step.
@@ -89,7 +89,8 @@ customerRouter.patch("/:id", async (req, res) => {
 });
 
 // DELETE /customers/:id -> remove a customer; 204 means "done, nothing to send back".
-// A customer that still has interactions is NOT deleted (409), so history is never lost.
+// A customer that still has interactions or follow-ups is NOT deleted (409),
+// so history and open work are never lost.
 customerRouter.delete("/:id", async (req, res) => {
   const id = parseId(req.params.id);
   if (id === null) {
@@ -104,13 +105,18 @@ customerRouter.delete("/:id", async (req, res) => {
   }
 
   // This check gives a friendly message. The database's ON DELETE RESTRICT
-  // rule is the second safety net if an interaction is added in between.
-  // TODO (follow-ups step): also refuse when the customer has follow-ups.
+  // rule is the second safety net if a row is added in between.
   const interactionCount = await prisma.interaction.count({
     where: { customerId: id },
   });
-  if (interactionCount > 0) {
-    sendConflict(res, "Customer still has interactions; delete them first");
+  const followUpCount = await prisma.followUp.count({
+    where: { customerId: id },
+  });
+  if (interactionCount > 0 || followUpCount > 0) {
+    sendConflict(
+      res,
+      "Customer still has interactions or follow-ups; delete them first",
+    );
     return;
   }
 

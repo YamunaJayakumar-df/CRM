@@ -20,8 +20,11 @@ vi.mock("../db.js", () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
-    // DELETE /customers/:id counts the customer's interactions first.
+    // DELETE /customers/:id counts the customer's interactions and follow-ups first.
     interaction: {
+      count: vi.fn(),
+    },
+    followUp: {
       count: vi.fn(),
     },
   },
@@ -34,6 +37,7 @@ const create = vi.mocked(prisma.customer.create);
 const update = vi.mocked(prisma.customer.update);
 const deleteCustomer = vi.mocked(prisma.customer.delete);
 const countInteractions = vi.mocked(prisma.interaction.count);
+const countFollowUps = vi.mocked(prisma.followUp.count);
 
 // A customer as Prisma would return it (dates are real Date objects)...
 const acme = {
@@ -243,6 +247,7 @@ describe("DELETE /customers/:id", () => {
   it("returns 204 with an empty body and deletes the customer", async () => {
     findUnique.mockResolvedValue(acme);
     countInteractions.mockResolvedValue(0);
+    countFollowUps.mockResolvedValue(0);
     deleteCustomer.mockResolvedValue(acme);
 
     const res = await request(createApp()).delete("/customers/1");
@@ -250,6 +255,7 @@ describe("DELETE /customers/:id", () => {
     expect(res.status).toBe(204);
     expect(res.text).toBe("");
     expect(countInteractions).toHaveBeenCalledWith({ where: { customerId: 1 } });
+    expect(countFollowUps).toHaveBeenCalledWith({ where: { customerId: 1 } });
     expect(deleteCustomer).toHaveBeenCalledWith({ where: { id: 1 } });
   });
 
@@ -257,12 +263,28 @@ describe("DELETE /customers/:id", () => {
   it("returns 409 when the customer still has interactions and does not delete", async () => {
     findUnique.mockResolvedValue(acme);
     countInteractions.mockResolvedValue(3);
+    countFollowUps.mockResolvedValue(0);
 
     const res = await request(createApp()).delete("/customers/1");
 
     expect(res.status).toBe(409);
     expect(res.body).toEqual({
-      error: "Customer still has interactions; delete them first",
+      error: "Customer still has interactions or follow-ups; delete them first",
+    });
+    expect(deleteCustomer).not.toHaveBeenCalled();
+  });
+
+  // Protects open work: a customer with follow-ups is never deleted (409 Conflict).
+  it("returns 409 when the customer still has follow-ups and does not delete", async () => {
+    findUnique.mockResolvedValue(acme);
+    countInteractions.mockResolvedValue(0);
+    countFollowUps.mockResolvedValue(2);
+
+    const res = await request(createApp()).delete("/customers/1");
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({
+      error: "Customer still has interactions or follow-ups; delete them first",
     });
     expect(deleteCustomer).not.toHaveBeenCalled();
   });
@@ -278,6 +300,7 @@ describe("DELETE /customers/:id", () => {
     });
     expect(findUnique).not.toHaveBeenCalled();
     expect(countInteractions).not.toHaveBeenCalled();
+    expect(countFollowUps).not.toHaveBeenCalled();
     expect(deleteCustomer).not.toHaveBeenCalled();
   });
 
@@ -290,6 +313,7 @@ describe("DELETE /customers/:id", () => {
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: "Customer not found" });
     expect(countInteractions).not.toHaveBeenCalled();
+    expect(countFollowUps).not.toHaveBeenCalled();
     expect(deleteCustomer).not.toHaveBeenCalled();
   });
 });
