@@ -35,6 +35,9 @@ model Customer {
 
   interactions Interaction[]
   followUps    FollowUp[]
+
+  // Speeds up the dashboard's "customers added in the last 14 days".
+  @@index([createdAt])
 }
 
 // The kinds of contact we log with a customer.
@@ -59,6 +62,8 @@ model Interaction {
 
   // Speeds up "all interactions for this customer".
   @@index([customerId])
+  // Speeds up "newest first" lists and the dashboard's last-14-days counts.
+  @@index([occurredAt])
 }
 
 // Whether a follow-up still needs doing.
