@@ -13,6 +13,8 @@ export const CUSTOMER_SUMMARY_SELECT = {
   id: true,
   companyName: true,
   website: true,
+  // ACTIVE / INACTIVE, so lists and the side panel can show a status badge.
+  status: true,
 } satisfies Prisma.CustomerSelect;
 
 /**

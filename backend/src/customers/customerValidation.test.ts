@@ -553,3 +553,128 @@ describe("website scheme check", () => {
     }
   });
 });
+
+describe("industry field", () => {
+  // Protects that an industry is saved, without stray spaces.
+  it("accepts an industry and trims spaces", () => {
+    const result = validateCreateCustomer({
+      companyName: "Acme",
+      industry: "  Healthcare  ",
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      data: { companyName: "Acme", industry: "Healthcare" },
+    });
+  });
+
+  // Protects that a blank industry means "no industry" (null), not "".
+  it("turns an empty or whitespace-only industry into null", () => {
+    for (const industry of ["", "   "]) {
+      const result = validateCreateCustomer({ companyName: "Acme", industry });
+
+      expect(result).toEqual({
+        ok: true,
+        data: { companyName: "Acme", industry: null },
+      });
+    }
+  });
+
+  // Protects that clients may explicitly send null for industry.
+  it("accepts null", () => {
+    const result = validateCreateCustomer({ companyName: "Acme", industry: null });
+
+    expect(result).toEqual({
+      ok: true,
+      data: { companyName: "Acme", industry: null },
+    });
+  });
+
+  // Protects the industry length limit (100 OK, 101 rejected).
+  it("enforces the 100 character limit", () => {
+    const atLimit = validateCreateCustomer({
+      companyName: "Acme",
+      industry: "i".repeat(100),
+    });
+    const overLimit = validateCreateCustomer({
+      companyName: "Acme",
+      industry: "i".repeat(101),
+    });
+
+    expect(atLimit.ok).toBe(true);
+    expect(overLimit).toEqual({
+      ok: false,
+      errors: ["industry must be at most 100 characters"],
+    });
+  });
+
+  // Protects that industry stays on one line, and against NUL (Postgres refuses it).
+  it("rejects a tab or a NUL character", () => {
+    for (const industry of ["Health\tcare", "Healthcare\u0000"]) {
+      const result = validateCreateCustomer({ companyName: "Acme", industry });
+
+      expect(result).toEqual({
+        ok: false,
+        errors: ["industry contains invalid characters"],
+      });
+    }
+  });
+
+  // Protects against numbers or other non-text values.
+  it("rejects a number", () => {
+    const result = validateCreateCustomer({ companyName: "Acme", industry: 42 });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: ["industry must be a string or null"],
+    });
+  });
+
+  // Protects that industry alone is a valid update.
+  it("is allowed as the only field in an update", () => {
+    const result = validateUpdateCustomer({ industry: " IT Services " });
+
+    expect(result).toEqual({ ok: true, data: { industry: "IT Services" } });
+  });
+});
+
+describe("customer status field", () => {
+  const STATUS_ERROR = "status must be one of: ACTIVE, INACTIVE";
+
+  // Protects that both statuses can be chosen when creating a customer.
+  it("accepts ACTIVE and INACTIVE on create", () => {
+    for (const status of ["ACTIVE", "INACTIVE"]) {
+      const result = validateCreateCustomer({ companyName: "Acme", status });
+
+      expect(result).toEqual({ ok: true, data: { companyName: "Acme", status } });
+    }
+  });
+
+  // Protects that a customer can be switched between statuses on update.
+  it("accepts ACTIVE and INACTIVE on update", () => {
+    for (const status of ["ACTIVE", "INACTIVE"]) {
+      const result = validateUpdateCustomer({ status });
+
+      expect(result).toEqual({ ok: true, data: { status } });
+    }
+  });
+
+  // Protects that leaving status out on create lets the database default (ACTIVE) apply.
+  it("leaves status out of the data when it is not sent", () => {
+    const result = validateCreateCustomer({ companyName: "Acme" });
+
+    expect(result.ok && "status" in result.data).toBe(false);
+  });
+
+  // Protects that status must match the database enum exactly: lowercase,
+  // null (every customer needs a status) and numbers are rejected.
+  for (const status of ["active", null, 1]) {
+    it(`rejects status ${JSON.stringify(status)}`, () => {
+      const created = validateCreateCustomer({ companyName: "Acme", status });
+      const updated = validateUpdateCustomer({ status });
+
+      expect(created).toEqual({ ok: false, errors: [STATUS_ERROR] });
+      expect(updated).toEqual({ ok: false, errors: [STATUS_ERROR] });
+    });
+  }
+});

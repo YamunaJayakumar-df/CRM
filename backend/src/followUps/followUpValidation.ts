@@ -18,12 +18,19 @@ const ALLOWED_CREATE_FIELDS = [
   "title",
   "dueDate",
   "status",
+  "priority",
   "notes",
 ] as const;
 
 // Fields a client may send when updating. customerId is left out on purpose:
 // moving a follow-up to another customer is not supported.
-const ALLOWED_UPDATE_FIELDS = ["title", "dueDate", "status", "notes"] as const;
+const ALLOWED_UPDATE_FIELDS = [
+  "title",
+  "dueDate",
+  "status",
+  "priority",
+  "notes",
+] as const;
 
 // The possible states of a follow-up. Must match the FollowUpStatus enum in schema.prisma.
 // Exported so the ?status= list filter in followUpRoutes.ts uses the same list.
@@ -31,16 +38,25 @@ export const FOLLOW_UP_STATUSES = ["OPEN", "DONE"] as const;
 
 export type FollowUpStatusName = (typeof FOLLOW_UP_STATUSES)[number];
 
+// How urgent a follow-up is. Must match the FollowUpPriority enum in schema.prisma.
+export const FOLLOW_UP_PRIORITIES = ["LOW", "MEDIUM", "HIGH"] as const;
+
+export type FollowUpPriorityName = (typeof FOLLOW_UP_PRIORITIES)[number];
+
 // Maximum lengths (in characters, after trimming).
 const MAX_TITLE_LENGTH = 200;
 const MAX_NOTES_LENGTH = 5000;
 
-/** Clean data for creating a follow-up. status and notes are left out when not sent. */
+/**
+ * Clean data for creating a follow-up. status, priority and notes are left out
+ * when not sent (the database then uses OPEN and MEDIUM).
+ */
 export type CreateFollowUpData = {
   customerId: number;
   title: string;
   dueDate: Date;
   status?: FollowUpStatusName;
+  priority?: FollowUpPriorityName;
   notes?: string | null;
 };
 
@@ -49,6 +65,7 @@ export type UpdateFollowUpData = {
   title?: string;
   dueDate?: Date;
   status?: FollowUpStatusName;
+  priority?: FollowUpPriorityName;
   notes?: string | null;
 };
 
@@ -148,7 +165,7 @@ function findUnknownFields(
 }
 
 /**
- * Read and clean title, dueDate, status and notes if they are present in the body.
+ * Read and clean title, dueDate, status, priority and notes if they are present in the body.
  * Problems are added to `errors`; fields with problems are left out of the result.
  */
 function readFollowUpFields(
@@ -175,6 +192,13 @@ function readFollowUpFields(
     const status = readStatus(body.status, errors);
     if (status !== undefined) {
       fields.status = status;
+    }
+  }
+
+  if (Object.hasOwn(body, "priority")) {
+    const priority = readPriority(body.priority, errors);
+    if (priority !== undefined) {
+      fields.priority = priority;
     }
   }
 
@@ -244,6 +268,22 @@ function readStatus(
     return undefined;
   }
   return raw as FollowUpStatusName;
+}
+
+/**
+ * priority must be exactly one of FOLLOW_UP_PRIORITIES (uppercase). null is
+ * rejected because every follow-up has a priority. Returns undefined on error.
+ */
+function readPriority(
+  raw: unknown,
+  errors: string[],
+): FollowUpPriorityName | undefined {
+  const allowed: readonly unknown[] = FOLLOW_UP_PRIORITIES;
+  if (!allowed.includes(raw)) {
+    errors.push(`priority must be one of: ${FOLLOW_UP_PRIORITIES.join(", ")}`);
+    return undefined;
+  }
+  return raw as FollowUpPriorityName;
 }
 
 /**

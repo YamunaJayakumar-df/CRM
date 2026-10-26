@@ -41,6 +41,8 @@ const acme = {
   companyName: "Acme Ltd",
   contactName: null,
   website: "acme.com",
+  industry: null,
+  status: "ACTIVE" as const,
   email: null,
   phone: null,
   notes: null,
@@ -49,14 +51,21 @@ const acme = {
 };
 
 // The small customer summary Prisma adds to each follow-up because of the
-// include below. Only these three fields: no email, phone or notes.
-const acmeSummary = { id: 12, companyName: "Acme Ltd", website: "acme.com" };
+// include below. Only these four fields: no email, phone or notes.
+const acmeSummary = {
+  id: 12,
+  companyName: "Acme Ltd",
+  website: "acme.com",
+  status: "ACTIVE" as const,
+};
 
 // Every follow-up query that returns rows must ask Prisma for this summary.
 // Written out on purpose (not imported) so an accidental change in
 // shared/customerSummary.ts makes these tests fail.
 const includeCustomerSummary = {
-  customer: { select: { id: true, companyName: true, website: true } },
+  customer: {
+    select: { id: true, companyName: true, website: true, status: true },
+  },
 };
 
 // A follow-up as Prisma would return it: dueDate is a Date at midnight UTC...
@@ -66,6 +75,7 @@ const sendQuote = {
   title: "Send quote",
   dueDate: new Date("2026-10-30T00:00:00.000Z"),
   status: "OPEN" as const,
+  priority: "MEDIUM" as const,
   notes: null,
   createdAt: new Date("2026-10-26T11:00:00.000Z"),
   updatedAt: new Date("2026-10-26T11:00:00.000Z"),
@@ -81,10 +91,16 @@ const sendQuoteAsJson = {
   title: "Send quote",
   dueDate: "2026-10-30",
   status: "OPEN",
+  priority: "MEDIUM",
   notes: null,
   createdAt: "2026-10-26T11:00:00.000Z",
   updatedAt: "2026-10-26T11:00:00.000Z",
-  customer: { id: 12, companyName: "Acme Ltd", website: "acme.com" },
+  customer: {
+    id: 12,
+    companyName: "Acme Ltd",
+    website: "acme.com",
+    status: "ACTIVE",
+  },
 };
 
 // The list order, safety limit and customer summary used by every

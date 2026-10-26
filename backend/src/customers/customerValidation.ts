@@ -14,18 +14,28 @@ const ALLOWED_FIELDS = [
   "companyName",
   "contactName",
   "website",
+  "industry",
+  "status",
   "email",
   "phone",
   "notes",
 ] as const;
 
-type CustomerField = (typeof ALLOWED_FIELDS)[number];
+// Whether we currently work with a customer. Must match the CustomerStatus
+// enum in schema.prisma. Exported so other code can reuse the same list.
+export const CUSTOMER_STATUSES = ["ACTIVE", "INACTIVE"] as const;
+
+export type CustomerStatusName = (typeof CUSTOMER_STATUSES)[number];
+
+// The fields that hold free text (every allowed field except status).
+type CustomerTextField = Exclude<(typeof ALLOWED_FIELDS)[number], "status">;
 
 // Maximum length (in characters, after trimming) for each text field.
-const MAX_LENGTHS: Record<CustomerField, number> = {
+const MAX_LENGTHS: Record<CustomerTextField, number> = {
   companyName: 200,
   contactName: 200,
   website: 200,
+  industry: 100,
   email: 254, // the longest email address the standards allow
   phone: 50,
   notes: 5000,
@@ -49,6 +59,10 @@ export type CreateCustomerData = {
   // "www.acme.com" or "https://acme.com", and all are fine. It is checked
   // like other single-line text, and other schemes ("javascript:") are rejected.
   website?: string | null;
+  // Free text such as "Healthcare"; no fixed list yet.
+  industry?: string | null;
+  // Not sent -> the database default (ACTIVE) is used.
+  status?: CustomerStatusName;
   email?: string | null;
   phone?: string | null;
   notes?: string | null;
@@ -140,6 +154,7 @@ function readCustomerFields(
   const optionalFields = [
     "contactName",
     "website",
+    "industry",
     "email",
     "phone",
     "notes",
@@ -154,7 +169,30 @@ function readCustomerFields(
     }
   }
 
+  if (Object.hasOwn(body, "status")) {
+    const status = readStatus(body.status, errors);
+    if (status !== undefined) {
+      fields.status = status;
+    }
+  }
+
   return fields;
+}
+
+/**
+ * status must be exactly one of CUSTOMER_STATUSES (uppercase). null is rejected
+ * because every customer must have a status. Returns undefined on error.
+ */
+function readStatus(
+  raw: unknown,
+  errors: string[],
+): CustomerStatusName | undefined {
+  const allowed: readonly unknown[] = CUSTOMER_STATUSES;
+  if (!allowed.includes(raw)) {
+    errors.push(`status must be one of: ${CUSTOMER_STATUSES.join(", ")}`);
+    return undefined;
+  }
+  return raw as CustomerStatusName;
 }
 
 /** companyName must be a non-empty string. Returns the trimmed value, or undefined on error. */
@@ -187,7 +225,7 @@ function readCompanyName(raw: unknown, errors: string[]): string | undefined {
  * empty string becomes null (meaning "no value"). Returns undefined on error.
  */
 function readOptionalText(
-  field: CustomerField,
+  field: CustomerTextField,
   raw: unknown,
   errors: string[],
 ): string | null | undefined {

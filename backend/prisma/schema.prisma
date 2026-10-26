@@ -11,18 +11,27 @@ datasource db {
   provider = "postgresql"
 }
 
+// Whether we currently work with a customer.
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
 // A company we provide IT services to.
 model Customer {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   companyName String
   contactName String?
   // Company website or domain, e.g. "acme.com".
   website     String?
+  // Free text, e.g. "IT Services" or "Healthcare".
+  industry    String?
+  status      CustomerStatus @default(ACTIVE)
   email       String?
   phone       String?
   notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   interactions Interaction[]
   followUps    FollowUp[]
@@ -58,19 +67,27 @@ enum FollowUpStatus {
   DONE
 }
 
+// How urgent a follow-up is.
+enum FollowUpPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 // Something someone must do for a customer by a certain day.
 model FollowUp {
-  id         Int            @id @default(autoincrement())
+  id         Int              @id @default(autoincrement())
   // Restrict: the database refuses to delete a customer that still has follow-ups.
-  customer   Customer       @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
   customerId Int
   title      String
   // A plain calendar date (no time, no timezone), e.g. 2026-10-30.
-  dueDate    DateTime       @db.Date
-  status     FollowUpStatus @default(OPEN)
+  dueDate    DateTime         @db.Date
+  status     FollowUpStatus   @default(OPEN)
+  priority   FollowUpPriority @default(MEDIUM)
   notes      String?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
   // Speeds up "follow-ups of this customer" and "what is due / overdue".
   @@index([customerId])

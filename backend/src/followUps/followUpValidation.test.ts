@@ -329,3 +329,42 @@ describe("validateUpdateFollowUp", () => {
     }
   });
 });
+
+describe("follow-up priority", () => {
+  const PRIORITY_ERROR = "priority must be one of: LOW, MEDIUM, HIGH";
+
+  // Protects that every priority can be chosen when creating a follow-up.
+  for (const priority of ["LOW", "MEDIUM", "HIGH"]) {
+    it(`accepts priority ${priority} on create`, () => {
+      const result = validateCreateFollowUp({ ...validBody, priority });
+
+      expect(result).toEqual({ ok: true, data: { ...validData, priority } });
+    });
+
+    // Protects that priority alone is a valid update.
+    it(`accepts priority ${priority} on update`, () => {
+      const result = validateUpdateFollowUp({ priority });
+
+      expect(result).toEqual({ ok: true, data: { priority } });
+    });
+  }
+
+  // Protects that leaving priority out lets the database default (MEDIUM) apply.
+  it("leaves priority out of the data when it is not sent on create", () => {
+    const result = validateCreateFollowUp(validBody);
+
+    expect(result.ok && "priority" in result.data).toBe(false);
+  });
+
+  // Protects that priority must match the database enum exactly: lowercase,
+  // unknown words, null (every follow-up has a priority) and numbers are rejected.
+  for (const priority of ["high", "URGENT", null, 1]) {
+    it(`rejects priority ${JSON.stringify(priority)}`, () => {
+      const created = validateCreateFollowUp({ ...validBody, priority });
+      const updated = validateUpdateFollowUp({ priority });
+
+      expect(created).toEqual({ ok: false, errors: [PRIORITY_ERROR] });
+      expect(updated).toEqual({ ok: false, errors: [PRIORITY_ERROR] });
+    });
+  }
+});
