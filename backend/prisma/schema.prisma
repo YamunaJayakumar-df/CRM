@@ -1,0 +1,12 @@
+// Prisma schema: describes our database tables ("models").
+// Docs: https://pris.ly/d/prisma-schema
+// The database connection URL is set in prisma.config.ts (read from backend/.env).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
