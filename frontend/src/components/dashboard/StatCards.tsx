@@ -24,7 +24,7 @@ export default async function StatCards() {
         value={customers.total}
         icon={<Users {...iconProps} />}
         trend={<TrendText direction="up" amount={customers.addedLast7Days} suffix="this week" />}
-        chart={<Sparkline values={customers.dailyNew} color="blue" />}
+        chart={<Sparkline values={customers.dailyNew} color="primary" />}
       />
       <StatCard
         // "Open" includes overdue follow-ups: they are still open.
@@ -32,7 +32,7 @@ export default async function StatCards() {
         value={followUps.open}
         icon={<CalendarCheck {...iconProps} />}
         trend={`${followUps.dueNext7Days} due this week`}
-        chart={<Sparkline values={followUps.dueByDayNext14} color="blue" />}
+        chart={<Sparkline values={followUps.dueByDayNext14} color="primary" />}
       />
       <StatCard
         label="Overdue Tasks"
@@ -57,7 +57,7 @@ export default async function StatCards() {
             />
           )
         }
-        chart={<Sparkline values={interactions.dailyCount} color="blue" />}
+        chart={<Sparkline values={interactions.dailyCount} color="primary" />}
       />
     </div>
   );

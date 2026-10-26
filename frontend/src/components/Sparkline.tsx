@@ -10,7 +10,7 @@ import { useId } from "react";
 import { sparklinePaths } from "@/lib/charts/sparklinePath";
 
 /** Which chart colour token to draw with. */
-export type SparklineColor = "blue" | "red";
+export type SparklineColor = "primary" | "red";
 
 type SparklineProps = {
   /** Daily values, oldest first. */
@@ -21,7 +21,7 @@ type SparklineProps = {
 // Full class names are written out so Tailwind can find them.
 // The SVG uses `currentColor`, so this text colour becomes the line colour.
 const colorClasses: Record<SparklineColor, string> = {
-  blue: "text-chart-blue",
+  primary: "text-chart-primary",
   red: "text-chart-red",
 };
 

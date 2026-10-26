@@ -3,7 +3,7 @@
 // a big number, one short line of context (the `trend`), and an optional
 // small chart in the bottom-right corner.
 // It only lays things out; the dashboard decides what goes in each slot.
-type StatCardTone = "blue" | "red";
+type StatCardTone = "primary" | "red";
 
 type StatCardProps = {
   label: string;
@@ -19,7 +19,7 @@ type StatCardProps = {
 
 // Full class names are written out so Tailwind can find them.
 const toneClasses: Record<StatCardTone, string> = {
-  blue: "bg-avatar-blue text-avatar-blue-ink",
+  primary: "bg-primary-soft text-primary",
   red: "bg-high-bg text-high-ink",
 };
 
@@ -27,7 +27,7 @@ export default function StatCard({
   label,
   value,
   icon,
-  tone = "blue",
+  tone = "primary",
   trend,
   chart,
 }: StatCardProps) {

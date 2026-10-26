@@ -23,7 +23,7 @@ type FollowUpFilterChipsProps = {
 
 const baseClasses =
   "inline-flex h-11 items-center rounded-full px-4 text-sm font-medium transition-colors duration-150";
-const activeClasses = "bg-primary text-white";
+const activeClasses = "bg-primary text-on-primary";
 const inactiveClasses = "border border-line text-ink hover:bg-hover";
 
 export default function FollowUpFilterChips({ active, counts, search }: FollowUpFilterChipsProps) {

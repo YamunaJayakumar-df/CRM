@@ -25,7 +25,7 @@ export default function StatusDonut({ openOnTime, overdue, completed }: StatusDo
   // "Open (on time)" not just "Open": the middle number counts ALL open
   // follow-ups (including overdue), so the legend must not reuse that word alone.
   const parts = [
-    { label: "Open (on time)", count: openOnTime, stroke: "stroke-chart-blue", dot: "bg-chart-blue" },
+    { label: "Open (on time)", count: openOnTime, stroke: "stroke-chart-primary", dot: "bg-chart-primary" },
     { label: "Overdue", count: overdue, stroke: "stroke-chart-red", dot: "bg-chart-red" },
     { label: "Completed", count: completed, stroke: "stroke-chart-green", dot: "bg-chart-green" },
   ];

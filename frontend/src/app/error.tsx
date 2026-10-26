@@ -32,7 +32,7 @@ export default function ErrorPage({ retry }: ErrorPageProps) {
         <button
           type="button"
           onClick={() => retry()}
-          className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-base font-medium text-white transition-colors duration-150 hover:bg-primary-hover"
+          className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 text-base font-medium text-on-primary transition-colors duration-150 hover:bg-primary-hover"
         >
           <RotateCw size={18} strokeWidth={1.75} aria-hidden="true" />
           Try again
