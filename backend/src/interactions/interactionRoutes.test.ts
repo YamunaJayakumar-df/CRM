@@ -201,6 +201,305 @@ describe("GET /interactions", () => {
     });
     expect(findMany).not.toHaveBeenCalled();
   });
+
+  // Protects that a plain list sends ONLY customerId in "where": no type,
+  // no OR and no occurredAt keys sneak in when no filter is used.
+  it("sends no extra filter keys for a plain list", async () => {
+    findMany.mockResolvedValue([]);
+
+    await request(createApp()).get("/interactions");
+
+    const where = findMany.mock.calls[0][0]?.where;
+    expect(where).toStrictEqual({ customerId: undefined });
+  });
+});
+
+// The full findMany call the list route makes for a given "where" and limit.
+function listQuery(where: object, take = 500) {
+  return {
+    where,
+    orderBy: { occurredAt: "desc" },
+    take,
+    include: includeCustomerSummary,
+  };
+}
+
+// The 400 body for the given messages.
+function badRequest(...details: string[]) {
+  return { error: "Invalid request", details };
+}
+
+describe("GET /interactions filters (?q, ?type, ?from, ?to)", () => {
+  // Protects ?q=: summary OR company name contains the text, any case.
+  it("?q= searches the summary and the customer's company name", async () => {
+    findMany.mockResolvedValue([call]);
+
+    const res = await request(createApp()).get("/interactions?q=%20renewal%20");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({
+        customerId: undefined,
+        OR: [
+          { summary: { contains: "renewal", mode: "insensitive" } },
+          {
+            customer: {
+              companyName: { contains: "renewal", mode: "insensitive" },
+            },
+          },
+        ],
+      }),
+    );
+  });
+
+  // Protects that "%" is searched literally, not as "match everything".
+  it("?q=%25 escapes the percent sign", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/interactions?q=%25");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({
+        customerId: undefined,
+        OR: [
+          { summary: { contains: "\\%", mode: "insensitive" } },
+          {
+            customer: {
+              companyName: { contains: "\\%", mode: "insensitive" },
+            },
+          },
+        ],
+      }),
+    );
+  });
+
+  // Protects that a blank ?q= means "no search" (no OR added).
+  it("ignores a blank ?q=", async () => {
+    findMany.mockResolvedValue([]);
+
+    await request(createApp()).get("/interactions?q=%20%20");
+
+    expect(findMany.mock.calls[0][0]?.where).toStrictEqual({
+      customerId: undefined,
+    });
+  });
+
+  // Protects ?type=.
+  it("?type=MEETING filters by type", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/interactions?type=MEETING");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({ customerId: undefined, type: "MEETING" }),
+    );
+  });
+
+  // Protects ?from= alone: from 00:00 IST that day, no upper limit.
+  it("?from= alone sends only occurredAt.gte", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/interactions?from=2026-10-01");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({
+        customerId: undefined,
+        occurredAt: { gte: new Date("2026-09-30T18:30:00.000Z") },
+      }),
+    );
+  });
+
+  // Protects ?to= alone: the whole `to` day is included.
+  it("?to= alone sends only occurredAt.lt (start of the next day)", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/interactions?to=2026-10-05");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({
+        customerId: undefined,
+        occurredAt: { lt: new Date("2026-10-05T18:30:00.000Z") },
+      }),
+    );
+  });
+
+  // Protects ?from=&to= together (both days included).
+  it("?from=&to= sends both ends of the window", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get(
+      "/interactions?from=2026-10-01&to=2026-10-31",
+    );
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({
+        customerId: undefined,
+        occurredAt: {
+          gte: new Date("2026-09-30T18:30:00.000Z"),
+          lt: new Date("2026-10-31T18:30:00.000Z"),
+        },
+      }),
+    );
+  });
+
+  // Protects that all filters combine with AND in one "where".
+  it("combines customerId, type, q, from, to and limit", async () => {
+    findMany.mockResolvedValue([call]);
+
+    const res = await request(createApp()).get(
+      "/interactions?customerId=12&type=CALL&q=renewal&from=2026-10-01&to=2026-10-31&limit=5",
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([callAsJson]);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery(
+        {
+          customerId: 12,
+          type: "CALL",
+          OR: [
+            { summary: { contains: "renewal", mode: "insensitive" } },
+            {
+              customer: {
+                companyName: { contains: "renewal", mode: "insensitive" },
+              },
+            },
+          ],
+          occurredAt: {
+            gte: new Date("2026-09-30T18:30:00.000Z"),
+            lt: new Date("2026-10-31T18:30:00.000Z"),
+          },
+        },
+        5,
+      ),
+    );
+  });
+});
+
+describe("GET /interactions ?range=", () => {
+  // Freeze the clock at 20:00 UTC on 26 October. In India that is already
+  // 01:30 on 27 October, so "today" must be 2026-10-27.
+  // Only Date is faked, so supertest's real timers keep working.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-26T20:00:00Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Protects "7d" using TODAY IN INDIA (27 Oct), not the server's UTC date.
+  it("?range=7d covers 21 Oct to 27 Oct in Kolkata", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/interactions?range=7d");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({
+        customerId: undefined,
+        occurredAt: {
+          gte: new Date("2026-10-20T18:30:00.000Z"), // 21 Oct 00:00 IST
+          lt: new Date("2026-10-27T18:30:00.000Z"), // 28 Oct 00:00 IST
+        },
+      }),
+    );
+  });
+
+  // Protects "30d" reaching the database (28 Sep to 27 Oct).
+  it("?range=30d starts 29 days before today in Kolkata", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/interactions?range=30d");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith(
+      listQuery({
+        customerId: undefined,
+        occurredAt: {
+          gte: new Date("2026-09-27T18:30:00.000Z"), // 28 Sep 00:00 IST
+          lt: new Date("2026-10-27T18:30:00.000Z"),
+        },
+      }),
+    );
+  });
+});
+
+describe("GET /interactions filter errors", () => {
+  // Protects each new 400 message, and that the database is never asked.
+  // Repeated values (?type=CALL&type=NOTE) arrive as arrays and must be rejected.
+  const cases: Array<[query: string, message: string]> = [
+    ["type=call", "type must be one of: CALL, EMAIL, MEETING, NOTE"],
+    ["type=", "type must be one of: CALL, EMAIL, MEETING, NOTE"],
+    ["type=CALL&type=NOTE", "type must be one of: CALL, EMAIL, MEETING, NOTE"],
+    ["range=1y", "range must be one of: 7d, 30d, 90d"],
+    ["range=7D", "range must be one of: 7d, 30d, 90d"],
+    ["range=7d&range=30d", "range must be one of: 7d, 30d, 90d"],
+    ["from=2026-02-31", 'from must be a date like "2026-10-26"'],
+    ["from=26-10-2026", 'from must be a date like "2026-10-26"'],
+    ["from=2026-10-01&from=2026-10-02", 'from must be a date like "2026-10-26"'],
+    ["to=2026-10-26T10:00", 'to must be a date like "2026-10-26"'],
+    ["to=2026-10-01&to=2026-10-02", 'to must be a date like "2026-10-26"'],
+    ["range=7d&from=2026-10-01", "Use either range or from/to, not both"],
+    ["range=7d&to=2026-10-31", "Use either range or from/to, not both"],
+    ["from=2026-10-31&to=2026-10-01", "from must be on or before to"],
+    ["q=a&q=b", "q must be a single search text"],
+  ];
+
+  for (const [query, message] of cases) {
+    it(`returns 400 for ?${query} and does not query the database`, async () => {
+      const res = await request(createApp()).get(`/interactions?${query}`);
+
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual(badRequest(message));
+      expect(findMany).not.toHaveBeenCalled();
+    });
+  }
+
+  // Protects that ALL problems come back in one 400, in a fixed order:
+  // customerId, type, q, range/from-to conflict, from after to, limit.
+  it("lists every problem at once, in the documented order", async () => {
+    const res = await request(createApp()).get(
+      "/interactions?customerId=abc&type=call&q=a&q=b&range=7d&from=2026-10-31&to=2026-10-01&limit=0",
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual(
+      badRequest(
+        "customerId must be a positive whole number",
+        "type must be one of: CALL, EMAIL, MEETING, NOTE",
+        "q must be a single search text",
+        "Use either range or from/to, not both",
+        "from must be on or before to",
+        "limit must be a whole number from 1 to 500",
+      ),
+    );
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  // Protects the order of the date messages: conflict, range, from, to.
+  it("lists the date problems in order: conflict, range, from, to", async () => {
+    const res = await request(createApp()).get(
+      "/interactions?range=1y&from=bad&to=bad",
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual(
+      badRequest(
+        "Use either range or from/to, not both",
+        "range must be one of: 7d, 30d, 90d",
+        'from must be a date like "2026-10-26"',
+        'to must be a date like "2026-10-26"',
+      ),
+    );
+    expect(findMany).not.toHaveBeenCalled();
+  });
 });
 
 describe("GET /interactions/:id", () => {

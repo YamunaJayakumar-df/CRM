@@ -7,11 +7,23 @@
 // NOTE: no login/permission checks yet; they are added in the later Auth step.
 import { Router } from "express";
 import { prisma } from "../db.js";
+import type { Prisma } from "../generated/prisma/client.js";
+import { escapeSearchText } from "../shared/escapeSearchText.js";
 import { parseId } from "../shared/parseId.js";
 import { parseLimit } from "../shared/parseLimit.js";
+import { readSearchText } from "../shared/readSearchText.js";
 import { sendBadRequest, sendNotFound } from "../shared/httpErrors.js";
 import { INCLUDE_CUSTOMER_SUMMARY } from "../shared/customerSummary.js";
+import { isPlainDate, todayInKolkata } from "../shared/plainDate.js";
 import {
+  DATE_RANGES,
+  buildOccurredAtWindow,
+  isDateRange,
+  type DateFilters,
+} from "./interactionDateWindow.js";
+import {
+  INTERACTION_TYPES,
+  type InteractionTypeName,
   validateCreateInteraction,
   validateUpdateInteraction,
 } from "./interactionValidation.js";
@@ -20,53 +32,182 @@ import {
 // default and the largest allowed ?limit=. Pagination comes in a later step.
 const MAX_INTERACTIONS_PER_LIST = 500;
 
+/** The list filters after checking. A missing filter is undefined. */
+type ListFilters = {
+  customerId?: number;
+  type?: InteractionTypeName;
+  // Trimmed ?q= text, matched against the summary and the customer's company name.
+  search?: string;
+  // ?range= or ?from=/?to= (never both), turned into an occurredAt window later.
+  dates: DateFilters;
+};
+
 export const interactionRouter = Router();
 
 /**
- * Read the optional ?customerId=12 filter.
- * Returns { ok: true, customerId } (undefined when not sent), or { ok: false } when it is invalid.
- * Express gives a string, or an array/object for odd URLs like ?customerId=1&customerId=2;
+ * Read and check every optional list value
+ * (?customerId=, ?type=, ?q=, ?range=, ?from=, ?to= and ?limit=).
+ * Collects ALL problems so the caller gets them in one 400 response.
+ * Express gives a string, or an array for odd URLs like ?type=CALL&type=NOTE;
  * anything that is not a single string is invalid.
  */
-function readCustomerIdFilter(
-  raw: unknown,
-): { ok: true; customerId: number | undefined } | { ok: false } {
-  if (raw === undefined) {
-    return { ok: true, customerId: undefined };
+function readListFilters(
+  query: Record<string, unknown>,
+):
+  | { ok: true; filters: ListFilters; limit: number }
+  | { ok: false; errors: string[] } {
+  const errors: string[] = [];
+  const filters: ListFilters = { dates: {} };
+
+  if (query.customerId !== undefined) {
+    const customerId =
+      typeof query.customerId === "string" ? parseId(query.customerId) : null;
+    if (customerId === null) {
+      errors.push("customerId must be a positive whole number");
+    } else {
+      filters.customerId = customerId;
+    }
   }
-  if (typeof raw !== "string") {
-    return { ok: false };
+
+  if (query.type !== undefined) {
+    const allowedTypes: readonly unknown[] = INTERACTION_TYPES;
+    if (allowedTypes.includes(query.type)) {
+      filters.type = query.type as InteractionTypeName;
+    } else {
+      errors.push(`type must be one of: ${INTERACTION_TYPES.join(", ")}`);
+    }
   }
-  const customerId = parseId(raw);
-  if (customerId === null) {
-    return { ok: false };
+
+  const searchResult = readSearchText(query.q);
+  if (searchResult.ok) {
+    filters.search = searchResult.search;
+  } else {
+    errors.push(searchResult.error);
   }
-  return { ok: true, customerId };
+
+  readDateFilters(query, filters.dates, errors);
+
+  const limitResult = parseLimit(query.limit, MAX_INTERACTIONS_PER_LIST);
+  if (!limitResult.ok) {
+    errors.push(limitResult.error);
+  }
+
+  // "!limitResult.ok" is already covered by errors; it is repeated so
+  // TypeScript knows limitResult.limit exists below.
+  if (errors.length > 0 || !limitResult.ok) {
+    return { ok: false, errors };
+  }
+  return { ok: true, filters, limit: limitResult.limit };
 }
 
-// GET /interactions -> newest first. Optional:
+/**
+ * Read ?range=7d|30d|90d, or ?from=YYYY-MM-DD and/or ?to=YYYY-MM-DD.
+ * Valid values are stored in `dates`; problems are added to `errors`.
+ */
+function readDateFilters(
+  query: Record<string, unknown>,
+  dates: DateFilters,
+  errors: string[],
+): void {
+  // Two ways to pick dates in one request would be ambiguous, so reject it.
+  const sentRange = query.range !== undefined;
+  const sentFromOrTo = query.from !== undefined || query.to !== undefined;
+  if (sentRange && sentFromOrTo) {
+    errors.push("Use either range or from/to, not both");
+  }
+
+  if (sentRange) {
+    if (isDateRange(query.range)) {
+      dates.range = query.range;
+    } else {
+      errors.push(`range must be one of: ${DATE_RANGES.join(", ")}`);
+    }
+  }
+
+  if (query.from !== undefined) {
+    if (isPlainDate(query.from)) {
+      dates.from = query.from;
+    } else {
+      errors.push('from must be a date like "2026-10-26"');
+    }
+  }
+
+  if (query.to !== undefined) {
+    if (isPlainDate(query.to)) {
+      dates.to = query.to;
+    } else {
+      errors.push('to must be a date like "2026-10-26"');
+    }
+  }
+
+  // "YYYY-MM-DD" text sorts like the dates themselves, so ">" compares days.
+  if (dates.from !== undefined && dates.to !== undefined && dates.from > dates.to) {
+    errors.push("from must be on or before to");
+  }
+}
+
+/**
+ * Turn the search text into the Prisma conditions for an "OR": an interaction
+ * matches when its summary OR its customer's company name contains the text,
+ * ignoring upper/lower case. escapeSearchText makes "%" and "_" match literally.
+ */
+function buildSearchConditions(
+  search: string,
+): Prisma.InteractionWhereInput[] {
+  const containsSearch = {
+    contains: escapeSearchText(search),
+    mode: "insensitive",
+  } as const;
+  return [
+    { summary: containsSearch },
+    { customer: { companyName: containsSearch } },
+  ];
+}
+
+/**
+ * Turn checked filters into a Prisma "where". All filters combine with AND.
+ * `today` is "YYYY-MM-DD" in Asia/Kolkata (passed in so it is easy to test).
+ */
+function buildListWhere(
+  filters: ListFilters,
+  today: string,
+): Prisma.InteractionWhereInput {
+  const where: Prisma.InteractionWhereInput = {
+    customerId: filters.customerId,
+  };
+
+  // Each key is only added when used, so the "where" of plain lists is unchanged.
+  if (filters.type !== undefined) {
+    where.type = filters.type;
+  }
+  if (filters.search !== undefined) {
+    where.OR = buildSearchConditions(filters.search);
+  }
+  const window = buildOccurredAtWindow(filters.dates, today);
+  if (window.gte !== undefined || window.lt !== undefined) {
+    where.occurredAt = window;
+  }
+  return where;
+}
+
+// GET /interactions -> newest first. Optional filters (all combine with AND):
 // ?customerId=12 shows one customer's interactions,
-// ?limit=5 returns at most 5 (1 to 500; default 500).
+// ?type=CALL|EMAIL|MEETING|NOTE,
+// ?q=renewal (summary or company name contains "renewal"),
+// ?range=7d|30d|90d (today and the days before, in Asia/Kolkata), OR
+// ?from=2026-10-01&to=2026-10-31 (both days included; either may be alone),
+// and ?limit=5 to return at most 5 (1 to 500; default 500).
 interactionRouter.get("/", async (req, res) => {
-  // Check both values first so the 400 lists every problem at once.
-  const filter = readCustomerIdFilter(req.query.customerId);
-  const limitResult = parseLimit(req.query.limit, MAX_INTERACTIONS_PER_LIST);
-  if (!filter.ok || !limitResult.ok) {
-    const errors: string[] = [];
-    if (!filter.ok) {
-      errors.push("customerId must be a positive whole number");
-    }
-    if (!limitResult.ok) {
-      errors.push(limitResult.error);
-    }
-    sendBadRequest(res, errors);
+  const result = readListFilters(req.query);
+  if (!result.ok) {
+    sendBadRequest(res, result.errors);
     return;
   }
 
   const interactions = await prisma.interaction.findMany({
-    where: { customerId: filter.customerId },
+    where: buildListWhere(result.filters, todayInKolkata()),
     orderBy: { occurredAt: "desc" },
-    take: limitResult.limit,
+    take: result.limit,
     include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(200).json(interactions);

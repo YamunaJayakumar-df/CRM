@@ -22,9 +22,10 @@ const ALLOWED_CREATE_FIELDS = [
 const ALLOWED_UPDATE_FIELDS = ["type", "summary", "occurredAt"] as const;
 
 // The kinds of interaction. Must match the InteractionType enum in schema.prisma.
-const INTERACTION_TYPES = ["CALL", "EMAIL", "MEETING", "NOTE"] as const;
+// Exported so the ?type= list filter in interactionRoutes.ts uses the same list.
+export const INTERACTION_TYPES = ["CALL", "EMAIL", "MEETING", "NOTE"] as const;
 
-type InteractionTypeName = (typeof INTERACTION_TYPES)[number];
+export type InteractionTypeName = (typeof INTERACTION_TYPES)[number];
 
 // Maximum length of the summary (in characters, after trimming).
 const MAX_SUMMARY_LENGTH = 5000;
