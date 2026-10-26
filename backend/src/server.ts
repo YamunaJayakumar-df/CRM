@@ -1,5 +1,6 @@
 // Entry point: starts the HTTP server on a real port.
 // All routes live in app.ts; this file only reads config and listens.
+import "./env.js"; // must stay the first import: loads backend/.env
 import { createApp } from "./app.js";
 
 const DEFAULT_PORT = 4000;
