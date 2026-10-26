@@ -1,99 +1,54 @@
 // Dashboard (/): the first screen after opening the CRM.
-// Look and layout only for now. Numbers show "—" and lists are empty;
-// real data is connected in a later step (step 7).
-import {
-  CalendarCheck,
-  CalendarDays,
-  ClockAlert,
-  Inbox,
-  MessagesSquare,
-  Sun,
-  Users,
-} from "lucide-react";
-import Card from "@/components/Card";
-import EmptyState from "@/components/EmptyState";
-import PageHeader from "@/components/PageHeader";
-import StatCard from "@/components/StatCard";
-import ViewAllLink from "@/components/ViewAllLink";
+//
+// How it loads (Next 16 with cacheComponents):
+// - This page component is NOT async and awaits nothing, so Next.js can
+//   prebuild its frame (card titles, quick actions, grey placeholders) and
+//   send it instantly.
+// - Each part that needs live data (the greeting needs the clock; the
+//   others need the backend) is its own async component inside <Suspense>.
+//   Each streams in on its own, so one slow backend call does not hold up
+//   the rest of the page.
+// - `searchParams` (the ?fu=...&fq=... filter) is a Promise. We pass it down
+//   unopened and only await it inside the follow-ups card's Suspense
+//   boundary, so reading the URL does not hold up the rest of the page.
+// - If the backend cannot be reached, app/error.tsx shows a friendly
+//   message with a "Try again" button.
+import { Suspense } from "react";
+import DashboardGreeting from "@/components/dashboard/DashboardGreeting";
+import DashboardGreetingSkeleton from "@/components/dashboard/DashboardGreetingSkeleton";
+import FollowUpStatusCard from "@/components/dashboard/FollowUpStatusCard";
+import RecentActivity from "@/components/dashboard/RecentActivity";
+import StatCards from "@/components/dashboard/StatCards";
+import StatCardsSkeleton from "@/components/dashboard/StatCardsSkeleton";
+import UpcomingFollowUps from "@/components/dashboard/UpcomingFollowUps";
 
-const statIconProps = { size: 18, strokeWidth: 1.75, "aria-hidden": true } as const;
-const emptyIconProps = { size: 28, strokeWidth: 1.5, "aria-hidden": true } as const;
-
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: PageProps<"/">) {
   return (
     // Two-column frame: the main column now, and room for a right-hand
-    // column later. A later step will show a customer detail panel there
-    // when the URL has ?customer=12. Until then the main column fills the width.
+    // column on wide screens. The next step shows a customer detail panel
+    // there when the URL has ?customer=12. Until then the main column fills
+    // the width.
     <div className="flex flex-col gap-8 xl:flex-row">
       <div className="min-w-0 flex-1">
-        {/*
-          The greeting is fixed text for now. A later step will pick
-          "Good morning / afternoon / evening" from the time of day.
-        */}
-        <PageHeader
-          icon={<Sun size={24} strokeWidth={1.75} aria-hidden="true" />}
-          title="Good morning"
-          subtitle="Here's what's happening with your customers today."
-          right={
-            // Date placeholder. We do not call new Date() here on purpose:
-            // with cacheComponents, reading the current time makes the page
-            // wait for a request instead of being prebuilt. The real date
-            // comes in a later step.
-            <p className="flex items-center gap-2 text-sm text-muted">
-              <CalendarDays size={16} strokeWidth={1.75} aria-hidden="true" />
-              Today
-            </p>
-          }
-        />
+        <Suspense fallback={<DashboardGreetingSkeleton />}>
+          <DashboardGreeting />
+        </Suspense>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Total Customers"
-            value="—"
-            icon={<Users {...statIconProps} />}
-          />
-          <StatCard
-            label="Open Follow-ups"
-            value="—"
-            icon={<CalendarCheck {...statIconProps} />}
-          />
-          <StatCard
-            label="Overdue Tasks"
-            value="—"
-            icon={<ClockAlert {...statIconProps} />}
-          />
-          <StatCard
-            label="Recent Interactions"
-            value="—"
-            icon={<MessagesSquare {...statIconProps} />}
-          />
+        <Suspense fallback={<StatCardsSkeleton />}>
+          <StatCards />
+        </Suspense>
+
+        <div className="mt-8">
+          <UpcomingFollowUps searchParams={searchParams} />
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card
-            title="Upcoming Follow-ups"
-            action={<ViewAllLink href="/follow-ups" />}
-          >
-            <EmptyState
-              icon={<Inbox {...emptyIconProps} />}
-              message="No upcoming follow-ups"
-              hint="Follow-ups due soon will appear here."
-            />
-          </Card>
-          <Card
-            title="Recent Activity"
-            action={<ViewAllLink href="/interactions" />}
-          >
-            <EmptyState
-              icon={<MessagesSquare {...emptyIconProps} />}
-              message="No recent activity"
-              hint="Calls, emails and meetings will appear here."
-            />
-          </Card>
+        <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <RecentActivity />
+          <FollowUpStatusCard />
         </div>
       </div>
 
-      {/* Right-hand customer panel goes here in a later step. */}
+      {/* Right-hand customer panel goes here in the next step. */}
     </div>
   );
 }

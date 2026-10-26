@@ -36,7 +36,7 @@
 
   /* Priority pills */
   --color-high-bg: #fde3e3;
-  --color-high-ink: #c8312f;
+  --color-high-ink: #b02a28; /* a bit darker than danger, for AA contrast on the pill */
   --color-medium-bg: #fdf0d9;
   --color-medium-ink: #9a5606;
   --color-low-bg: #ddf3e6;

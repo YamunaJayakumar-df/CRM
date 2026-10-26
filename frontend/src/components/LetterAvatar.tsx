@@ -1,6 +1,9 @@
-// LetterAvatar: a round badge with the first letter of a company name,
-// used instead of a logo. The tint is picked from a small fixed list
-// based on the letter, so the same company always gets the same colour.
+// LetterAvatar: a round badge with a company's initials (e.g. "AC" for
+// "Acme Corp"), used instead of a logo. The tint is picked from a small
+// fixed list based on the whole name, so the same company always gets the
+// same colour, and companies starting with the same letter usually differ.
+import { initialsOf } from "@/lib/format/initials";
+
 type LetterAvatarProps = {
   name: string;
 };
@@ -14,20 +17,24 @@ const tints = [
   "bg-avatar-green text-avatar-green-ink",
 ];
 
-export default function LetterAvatar({ name }: LetterAvatarProps) {
-  const trimmed = name.trim();
-  const letter = trimmed === "" ? "?" : trimmed[0].toUpperCase();
+/** Adds up the character codes of the name: same name -> same number, every time. */
+function nameNumber(name: string): number {
+  let total = 0;
+  for (const character of name.trim().toLowerCase()) {
+    total += character.codePointAt(0) ?? 0;
+  }
+  return total;
+}
 
-  // The letter's character code always gives the same number,
-  // so "Acme" and "Apex" both land on the same tint every time.
-  const tint = tints[letter.charCodeAt(0) % tints.length];
+export default function LetterAvatar({ name }: LetterAvatarProps) {
+  const tint = tints[nameNumber(name) % tints.length];
 
   return (
     <span
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-medium ${tint}`}
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium ${tint}`}
       aria-hidden="true"
     >
-      {letter}
+      {initialsOf(name)}
     </span>
   );
 }
