@@ -40,11 +40,23 @@ const acme = {
   id: 12,
   companyName: "Acme Ltd",
   contactName: null,
+  website: "acme.com",
   email: null,
   phone: null,
   notes: null,
   createdAt: new Date("2026-01-15T10:00:00.000Z"),
   updatedAt: new Date("2026-01-15T10:00:00.000Z"),
+};
+
+// The small customer summary Prisma adds to each follow-up because of the
+// include below. Only these three fields: no email, phone or notes.
+const acmeSummary = { id: 12, companyName: "Acme Ltd", website: "acme.com" };
+
+// Every follow-up query that returns rows must ask Prisma for this summary.
+// Written out on purpose (not imported) so an accidental change in
+// shared/customerSummary.ts makes these tests fail.
+const includeCustomerSummary = {
+  customer: { select: { id: true, companyName: true, website: true } },
 };
 
 // A follow-up as Prisma would return it: dueDate is a Date at midnight UTC...
@@ -57,10 +69,12 @@ const sendQuote = {
   notes: null,
   createdAt: new Date("2026-10-26T11:00:00.000Z"),
   updatedAt: new Date("2026-10-26T11:00:00.000Z"),
+  customer: acmeSummary,
 };
 
 // ...and the same follow-up as the client receives it.
-// dueDate is a plain day "YYYY-MM-DD", NOT "2026-10-30T00:00:00.000Z".
+// dueDate is a plain day "YYYY-MM-DD", NOT "2026-10-30T00:00:00.000Z",
+// and the customer summary is passed through unchanged.
 const sendQuoteAsJson = {
   id: 1,
   customerId: 12,
@@ -70,12 +84,15 @@ const sendQuoteAsJson = {
   notes: null,
   createdAt: "2026-10-26T11:00:00.000Z",
   updatedAt: "2026-10-26T11:00:00.000Z",
+  customer: { id: 12, companyName: "Acme Ltd", website: "acme.com" },
 };
 
-// The list order and safety limit used by every GET /follow-ups request.
+// The list order, safety limit and customer summary used by every
+// GET /follow-ups request.
 const listOrderAndLimit = {
   orderBy: [{ dueDate: "asc" }, { id: "asc" }],
   take: 500,
+  include: includeCustomerSummary,
 };
 
 const invalidId = {
@@ -269,7 +286,10 @@ describe("GET /follow-ups/:id", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(sendQuoteAsJson);
-    expect(findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { id: 1 },
+      include: includeCustomerSummary,
+    });
   });
 
   // Protects that bad ids are rejected before the database is asked.
@@ -311,6 +331,7 @@ describe("POST /follow-ups", () => {
         title: "Send quote",
         dueDate: new Date("2026-10-30T00:00:00.000Z"),
       },
+      include: includeCustomerSummary,
     });
   });
 
@@ -359,9 +380,13 @@ describe("PATCH /follow-ups/:id", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ...sendQuoteAsJson, status: "DONE" });
+    // The existence check only needs the row itself, so it has no include...
+    expect(findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+    // ...but the final update returns the row with its customer summary.
     expect(update).toHaveBeenCalledWith({
       where: { id: 1 },
       data: { status: "DONE" },
+      include: includeCustomerSummary,
     });
   });
 

@@ -12,6 +12,7 @@ import { prisma } from "../db.js";
 import type { Prisma } from "../generated/prisma/client.js";
 import { parseId } from "../shared/parseId.js";
 import { sendBadRequest, sendNotFound } from "../shared/httpErrors.js";
+import { INCLUDE_CUSTOMER_SUMMARY } from "../shared/customerSummary.js";
 import { plainDateToDate, todayInKolkata } from "../shared/plainDate.js";
 import { toFollowUpResponse } from "./followUpResponse.js";
 import {
@@ -131,6 +132,7 @@ followUpRouter.get("/", async (req, res) => {
     // id breaks ties so follow-ups due on the same day keep a stable order.
     orderBy: [{ dueDate: "asc" }, { id: "asc" }],
     take: MAX_FOLLOW_UPS_PER_LIST,
+    include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(200).json(followUps.map(toFollowUpResponse));
 });
@@ -143,7 +145,10 @@ followUpRouter.get("/:id", async (req, res) => {
     return;
   }
 
-  const followUp = await prisma.followUp.findUnique({ where: { id } });
+  const followUp = await prisma.followUp.findUnique({
+    where: { id },
+    include: INCLUDE_CUSTOMER_SUMMARY,
+  });
   if (followUp === null) {
     sendNotFound(res, "Follow-up");
     return;
@@ -169,7 +174,10 @@ followUpRouter.post("/", async (req, res) => {
   }
 
   // status not sent -> the database default (OPEN) is used.
-  const followUp = await prisma.followUp.create({ data: result.data });
+  const followUp = await prisma.followUp.create({
+    data: result.data,
+    include: INCLUDE_CUSTOMER_SUMMARY,
+  });
   res.status(201).json(toFollowUpResponse(followUp));
 });
 
@@ -197,6 +205,7 @@ followUpRouter.patch("/:id", async (req, res) => {
   const followUp = await prisma.followUp.update({
     where: { id },
     data: result.data,
+    include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(200).json(toFollowUpResponse(followUp));
 });

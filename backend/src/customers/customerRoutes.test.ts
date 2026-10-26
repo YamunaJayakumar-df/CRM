@@ -44,6 +44,7 @@ const acme = {
   id: 1,
   companyName: "Acme Ltd",
   contactName: "Jane Doe",
+  website: "acme.com",
   email: "jane@acme.com",
   phone: null,
   notes: null,
@@ -57,6 +58,7 @@ const acmeAsJson = {
   id: 1,
   companyName: "Acme Ltd",
   contactName: "Jane Doe",
+  website: "acme.com",
   email: "jane@acme.com",
   phone: null,
   notes: null,
@@ -97,6 +99,103 @@ describe("GET /customers", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
+  });
+});
+
+describe("GET /customers?q= (search)", () => {
+  // Protects the search: any of the four fields may contain the text,
+  // upper/lower case ignored, with the same order and safety limit as the list.
+  it("searches company, contact, email and website, ignoring case", async () => {
+    findMany.mockResolvedValue([acme]);
+
+    const res = await request(createApp()).get("/customers?q=acme");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([acmeAsJson]);
+    expect(findMany).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { companyName: { contains: "acme", mode: "insensitive" } },
+          { contactName: { contains: "acme", mode: "insensitive" } },
+          { email: { contains: "acme", mode: "insensitive" } },
+          { website: { contains: "acme", mode: "insensitive" } },
+        ],
+      },
+      orderBy: { companyName: "asc" },
+      take: 500,
+    });
+  });
+
+  // Protects that "%" is searched literally (escaped), not as "match anything".
+  it("escapes % in the search text before asking the database", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/customers?q=100%25");
+
+    expect(res.status).toBe(200);
+    const where = findMany.mock.calls[0][0]?.where;
+    expect(where?.OR?.[0]).toEqual({
+      companyName: { contains: "100\\%", mode: "insensitive" },
+    });
+  });
+
+  // Protects that spaces around the search text are ignored.
+  it("trims the search text", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/customers?q=%20%20acme%20");
+
+    expect(res.status).toBe(200);
+    const where = findMany.mock.calls[0][0]?.where;
+    expect(where?.OR?.[0]).toEqual({
+      companyName: { contains: "acme", mode: "insensitive" },
+    });
+  });
+
+  // Protects that a blank search shows all customers instead of matching "".
+  it("treats a blank search as no filter", async () => {
+    findMany.mockResolvedValue([acme]);
+
+    const res = await request(createApp()).get("/customers?q=%20%20");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([acmeAsJson]);
+    // toHaveBeenCalledWith ignores keys that are undefined, so check `where` directly.
+    expect(findMany.mock.calls[0][0]?.where).toBeUndefined();
+  });
+
+  // Protects that a repeated ?q (which arrives as an array) is rejected.
+  it("returns 400 for ?q=a&q=b and does not query the database", async () => {
+    const res = await request(createApp()).get("/customers?q=a&q=b");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Invalid request",
+      details: ["q must be a single search text"],
+    });
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  // Protects the search length limit: 100 characters is allowed.
+  it("accepts a search of exactly 100 characters", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get(`/customers?q=${"a".repeat(100)}`);
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledTimes(1);
+  });
+
+  // Protects the search length limit: 101 characters is rejected.
+  it("returns 400 for a search of 101 characters and does not query the database", async () => {
+    const res = await request(createApp()).get(`/customers?q=${"a".repeat(101)}`);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Invalid request",
+      details: ["q must be at most 100 characters"],
+    });
+    expect(findMany).not.toHaveBeenCalled();
   });
 });
 

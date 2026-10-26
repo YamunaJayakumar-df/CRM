@@ -40,11 +40,23 @@ const acme = {
   id: 12,
   companyName: "Acme Ltd",
   contactName: null,
+  website: "acme.com",
   email: null,
   phone: null,
   notes: null,
   createdAt: new Date("2026-01-15T10:00:00.000Z"),
   updatedAt: new Date("2026-01-15T10:00:00.000Z"),
+};
+
+// The small customer summary Prisma adds to each interaction because of the
+// include below. Only these three fields: no email, phone or notes.
+const acmeSummary = { id: 12, companyName: "Acme Ltd", website: "acme.com" };
+
+// Every interaction query that returns rows must ask Prisma for this summary.
+// Written out on purpose (not imported) so an accidental change in
+// shared/customerSummary.ts makes these tests fail.
+const includeCustomerSummary = {
+  customer: { select: { id: true, companyName: true, website: true } },
 };
 
 // An interaction as Prisma would return it (dates are real Date objects)...
@@ -56,9 +68,11 @@ const call = {
   occurredAt: new Date("2026-10-26T10:30:00.000Z"),
   createdAt: new Date("2026-10-26T11:00:00.000Z"),
   updatedAt: new Date("2026-10-26T11:00:00.000Z"),
+  customer: acmeSummary,
 };
 
-// ...and the same interaction as the client receives it (dates become ISO text).
+// ...and the same interaction as the client receives it (dates become ISO
+// text, the customer summary is passed through unchanged).
 const callAsJson = {
   id: 1,
   customerId: 12,
@@ -67,6 +81,7 @@ const callAsJson = {
   occurredAt: "2026-10-26T10:30:00.000Z",
   createdAt: "2026-10-26T11:00:00.000Z",
   updatedAt: "2026-10-26T11:00:00.000Z",
+  customer: { id: 12, companyName: "Acme Ltd", website: "acme.com" },
 };
 
 const invalidId = {
@@ -97,6 +112,7 @@ describe("GET /interactions", () => {
       where: { customerId: undefined },
       orderBy: { occurredAt: "desc" },
       take: 500,
+      include: includeCustomerSummary,
     });
   });
 
@@ -111,6 +127,7 @@ describe("GET /interactions", () => {
       where: { customerId: 12 },
       orderBy: { occurredAt: "desc" },
       take: 500,
+      include: includeCustomerSummary,
     });
   });
 
@@ -139,7 +156,10 @@ describe("GET /interactions/:id", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(callAsJson);
-    expect(findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { id: 1 },
+      include: includeCustomerSummary,
+    });
   });
 
   // Protects that bad ids are rejected before the database is asked.
@@ -185,6 +205,7 @@ describe("POST /interactions", () => {
         summary: "Discussed renewal",
         occurredAt: new Date("2026-10-26T10:30:00.000Z"),
       },
+      include: includeCustomerSummary,
     });
   });
 
@@ -255,9 +276,13 @@ describe("PATCH /interactions/:id", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ...callAsJson, summary: "Renewal agreed" });
+    // The existence check only needs the row itself, so it has no include...
+    expect(findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+    // ...but the final update returns the row with its customer summary.
     expect(update).toHaveBeenCalledWith({
       where: { id: 1 },
       data: { summary: "Renewal agreed" },
+      include: includeCustomerSummary,
     });
   });
 

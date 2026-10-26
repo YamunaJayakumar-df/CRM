@@ -6,12 +6,23 @@
 // plain calendar day, so the frontend gets exactly "2026-10-30".
 // Every follow-up route sends its result through toFollowUpResponse.
 import type { FollowUp } from "../generated/prisma/client.js";
+import type { CustomerSummary } from "../shared/customerSummary.js";
 import { dateToPlainDate } from "../shared/plainDate.js";
 
-/** A follow-up as sent to the frontend: the same fields, but dueDate is "YYYY-MM-DD". */
-export type FollowUpResponse = Omit<FollowUp, "dueDate"> & { dueDate: string };
+/** A follow-up as the routes load it: with its small customer summary. */
+export type FollowUpWithCustomer = FollowUp & { customer: CustomerSummary };
+
+/**
+ * A follow-up as sent to the frontend: the same fields (including `customer`),
+ * but dueDate is "YYYY-MM-DD".
+ */
+export type FollowUpResponse = Omit<FollowUpWithCustomer, "dueDate"> & {
+  dueDate: string;
+};
 
 /** Convert one follow-up from the database into its response shape. */
-export function toFollowUpResponse(followUp: FollowUp): FollowUpResponse {
+export function toFollowUpResponse(
+  followUp: FollowUpWithCustomer,
+): FollowUpResponse {
   return { ...followUp, dueDate: dateToPlainDate(followUp.dueDate) };
 }

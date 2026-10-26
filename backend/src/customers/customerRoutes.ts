@@ -7,6 +7,8 @@
 // NOTE: no login/permission checks yet; they are added in the later Auth step.
 import { Router } from "express";
 import { prisma } from "../db.js";
+import type { Prisma } from "../generated/prisma/client.js";
+import { escapeSearchText } from "../shared/escapeSearchText.js";
 import { parseId } from "../shared/parseId.js";
 import {
   sendBadRequest,
@@ -22,11 +24,80 @@ import {
 // Pagination (page by page) comes in a later step.
 const MAX_CUSTOMERS_PER_LIST = 500;
 
+// Longest search text we accept for ?q= (in characters, after trimming).
+const MAX_SEARCH_LENGTH = 100;
+
 export const customerRouter = Router();
 
+/**
+ * Read the optional ?q=acme search text.
+ * Returns { ok: true, search } (undefined when not sent or blank), or
+ * { ok: false, error } when it is invalid.
+ * Express gives a string, or an array for odd URLs like ?q=a&q=b;
+ * anything that is not a single string is invalid.
+ */
+function readSearchText(
+  raw: unknown,
+): { ok: true; search: string | undefined } | { ok: false; error: string } {
+  if (raw === undefined) {
+    return { ok: true, search: undefined };
+  }
+  if (typeof raw !== "string") {
+    return { ok: false, error: "q must be a single search text" };
+  }
+
+  const search = raw.trim();
+  if (search === "") {
+    return { ok: true, search: undefined };
+  }
+  if (search.length > MAX_SEARCH_LENGTH) {
+    return {
+      ok: false,
+      error: `q must be at most ${MAX_SEARCH_LENGTH} characters`,
+    };
+  }
+  return { ok: true, search };
+}
+
+/**
+ * Turn the search text into a Prisma "where": a customer matches when ANY of
+ * these fields contains the text, ignoring upper/lower case.
+ * No search -> undefined, which means "all customers".
+ * Prisma sends the text as a parameter, so it cannot inject SQL;
+ * escapeSearchText makes "%" and "_" match literally instead of as wildcards.
+ */
+function buildSearchWhere(
+  search: string | undefined,
+): Prisma.CustomerWhereInput | undefined {
+  if (search === undefined) {
+    return undefined;
+  }
+  const containsSearch = {
+    contains: escapeSearchText(search),
+    mode: "insensitive",
+  } as const;
+  return {
+    OR: [
+      { companyName: containsSearch },
+      { contactName: containsSearch },
+      { email: containsSearch },
+      { website: containsSearch },
+    ],
+  };
+}
+
 // GET /customers -> all customers, A to Z by company name.
-customerRouter.get("/", async (_req, res) => {
+// Optional ?q=acme only shows customers whose company name, contact name,
+// email or website contains "acme" (upper/lower case does not matter).
+customerRouter.get("/", async (req, res) => {
+  const result = readSearchText(req.query.q);
+  if (!result.ok) {
+    sendBadRequest(res, [result.error]);
+    return;
+  }
+
   const customers = await prisma.customer.findMany({
+    where: buildSearchWhere(result.search),
     orderBy: { companyName: "asc" },
     take: MAX_CUSTOMERS_PER_LIST,
   });

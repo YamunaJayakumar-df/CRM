@@ -9,6 +9,7 @@ import { Router } from "express";
 import { prisma } from "../db.js";
 import { parseId } from "../shared/parseId.js";
 import { sendBadRequest, sendNotFound } from "../shared/httpErrors.js";
+import { INCLUDE_CUSTOMER_SUMMARY } from "../shared/customerSummary.js";
 import {
   validateCreateInteraction,
   validateUpdateInteraction,
@@ -54,6 +55,7 @@ interactionRouter.get("/", async (req, res) => {
     where: { customerId: filter.customerId },
     orderBy: { occurredAt: "desc" },
     take: MAX_INTERACTIONS_PER_LIST,
+    include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(200).json(interactions);
 });
@@ -66,7 +68,10 @@ interactionRouter.get("/:id", async (req, res) => {
     return;
   }
 
-  const interaction = await prisma.interaction.findUnique({ where: { id } });
+  const interaction = await prisma.interaction.findUnique({
+    where: { id },
+    include: INCLUDE_CUSTOMER_SUMMARY,
+  });
   if (interaction === null) {
     sendNotFound(res, "Interaction");
     return;
@@ -97,6 +102,7 @@ interactionRouter.post("/", async (req, res) => {
       // Not sent -> it happened "now".
       occurredAt: result.data.occurredAt ?? new Date(),
     },
+    include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(201).json(interaction);
 });
@@ -124,6 +130,7 @@ interactionRouter.patch("/:id", async (req, res) => {
   const interaction = await prisma.interaction.update({
     where: { id },
     data: result.data,
+    include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(200).json(interaction);
 });
