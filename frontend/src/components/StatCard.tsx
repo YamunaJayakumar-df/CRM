@@ -40,13 +40,13 @@ export default function StatCard({
       </span>
       <p className="mt-4 text-sm text-muted">{label}</p>
 
-      <div className="mt-1 flex items-end justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-title font-medium text-ink">{value}</p>
-          <div className="mt-1 text-sm text-muted">{trend}</div>
-        </div>
-        {chart && <div className="h-10 w-24 shrink-0">{chart}</div>}
+      {/* Number and chart share a row; the chart may shrink on narrow cards. */}
+      <div className="mt-1 flex items-end justify-between gap-3">
+        <p className="text-title font-medium text-ink">{value}</p>
+        {chart && <div className="h-10 w-24 min-w-0 shrink">{chart}</div>}
       </div>
+      {/* The trend text gets its own line so it never wraps word by word. */}
+      <div className="mt-1 truncate text-sm text-muted">{trend}</div>
     </div>
   );
 }

@@ -3,25 +3,42 @@
 //
 // On narrow screens the table keeps its width and scrolls sideways INSIDE
 // the card (overflow-x-auto), so the page itself never scrolls sideways.
+// Clicking a customer opens the customer side panel (?customer=12) and
+// keeps the current filter (?fu, ?fq). The open customer's rows are
+// highlighted, and their link is marked with aria-current for screen readers.
 import Link from "next/link";
 import { EllipsisVertical, TriangleAlert } from "lucide-react";
 import LetterAvatar from "@/components/LetterAvatar";
 import PriorityBadge from "@/components/PriorityBadge";
 import StatusBadge from "@/components/StatusBadge";
 import type { FollowUp } from "@/lib/api/types";
-import { formatDueDate, isOverdue } from "@/lib/format/dates";
+import { customerPanelHref } from "@/lib/dashboard/customerPanelView";
+import type { FollowUpChip } from "@/lib/dashboard/followUpView";
+import { formatDueDate } from "@/lib/format/dates";
 import { firstLine } from "@/lib/format/firstLine";
+import { followUpDueState } from "@/lib/format/followUpDue";
 import { displayWebsite } from "@/lib/format/safeWebsiteUrl";
 
 type FollowUpTableProps = {
   followUps: FollowUp[];
   /** Today in India, "YYYY-MM-DD" (from the dashboard summary). */
   today: string;
+  /** The current filter, kept in the customer links. */
+  chip: FollowUpChip;
+  search: string;
+  /** The customer whose panel is open (highlighted), or null. */
+  selectedCustomerId: number | null;
 };
 
 const headerCellClasses = "px-3 pb-3 text-left text-xs font-medium text-muted";
 
-export default function FollowUpTable({ followUps, today }: FollowUpTableProps) {
+export default function FollowUpTable({
+  followUps,
+  today,
+  chip,
+  search,
+  selectedCustomerId,
+}: FollowUpTableProps) {
   return (
     <div className="-mx-3 overflow-x-auto">
       <table className="w-full min-w-160 border-collapse">
@@ -39,7 +56,13 @@ export default function FollowUpTable({ followUps, today }: FollowUpTableProps) 
         </thead>
         <tbody>
           {followUps.map((followUp) => (
-            <FollowUpRow key={followUp.id} followUp={followUp} today={today} />
+            <FollowUpRow
+              key={followUp.id}
+              followUp={followUp}
+              today={today}
+              customerHref={customerPanelHref(followUp.customer.id, chip, search)}
+              isSelected={followUp.customer.id === selectedCustomerId}
+            />
           ))}
         </tbody>
       </table>
@@ -50,30 +73,30 @@ export default function FollowUpTable({ followUps, today }: FollowUpTableProps) 
 type FollowUpRowProps = {
   followUp: FollowUp;
   today: string;
+  /** Opens this customer's side panel. */
+  customerHref: string;
+  /** True when this customer's panel is open. */
+  isSelected: boolean;
 };
 
 /** One table row. Kept in this file because only this table uses it. */
-function FollowUpRow({ followUp, today }: FollowUpRowProps) {
+function FollowUpRow({ followUp, today, customerHref, isSelected }: FollowUpRowProps) {
   const { customer } = followUp;
   const website = displayWebsite(customer.website);
   const notePreview = firstLine(followUp.notes);
 
   // Only OPEN follow-ups can be late; a DONE one with an old date is fine.
-  const isOpen = followUp.status === "OPEN";
-  const late = isOpen && isOverdue(followUp.dueDate, today);
-  const dueToday = isOpen && followUp.dueDate === today;
-  const dueColour = late || dueToday ? "font-medium text-danger" : "text-ink";
+  const dueState = followUpDueState(followUp.status, followUp.dueDate, today);
+  const late = dueState === "overdue";
+  const dueColour = dueState === "later" ? "text-ink" : "font-medium text-danger";
 
   return (
-    <tr className="border-t border-line">
+    <tr className={`border-t border-line ${isSelected ? "bg-selected" : ""}`}>
       <td className="max-w-56 px-3 py-3">
-        {/*
-          Opens the customer side panel (?customer=12). The panel itself
-          comes in the next step; for now the link only changes the URL.
-        */}
         <Link
-          href={`/?customer=${customer.id}`}
+          href={customerHref}
           scroll={false}
+          aria-current={isSelected ? "true" : undefined}
           className="group flex min-w-0 items-center gap-3 rounded-lg"
         >
           <LetterAvatar name={customer.companyName} />

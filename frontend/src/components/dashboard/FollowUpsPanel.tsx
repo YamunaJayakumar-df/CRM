@@ -2,7 +2,7 @@
 // chips, search box, and up to 5 follow-ups.
 //
 // Async Server Component, rendered inside <Suspense> by UpcomingFollowUps.
-// 1. Read ?fu (chip) and ?fq (search) from the URL.
+// 1. Read ?fu (chip), ?fq (search) and ?customer (open panel) from the URL.
 // 2. Ask the backend for the summary (chip counts, today's date) and the
 //    matching follow-ups AT THE SAME TIME (Promise.all), not one after another.
 // If the backend fails, the error goes to app/error.tsx ("Try again").
@@ -10,18 +10,17 @@ import { Inbox, SearchX } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { listFollowUps } from "@/lib/api/queries";
 import { getDashboardSummaryOnce } from "@/lib/api/requestMemo";
+import { readCustomerId } from "@/lib/dashboard/customerPanelView";
 import {
   chipCounts,
   followUpFiltersFor,
   readFollowUpChip,
   readFollowUpSearch,
+  type DashboardSearchParams,
 } from "@/lib/dashboard/followUpView";
 import FollowUpFilterChips from "./FollowUpFilterChips";
 import FollowUpSearchForm from "./FollowUpSearchForm";
 import FollowUpTable from "./FollowUpTable";
-
-/** The page's URL search params, as Next.js gives them. */
-export type DashboardSearchParams = Record<string, string | string[] | undefined>;
 
 type FollowUpsPanelProps = {
   searchParams: Promise<DashboardSearchParams>;
@@ -33,6 +32,7 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
   const params = await searchParams;
   const chip = readFollowUpChip(params.fu);
   const search = readFollowUpSearch(params.fq);
+  const selectedCustomerId = readCustomerId(params.customer);
 
   const [summary, followUps] = await Promise.all([
     getDashboardSummaryOnce(),
@@ -42,7 +42,15 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
 
   let content: React.ReactNode;
   if (followUps.length > 0) {
-    content = <FollowUpTable followUps={followUps} today={summary.today} />;
+    content = (
+      <FollowUpTable
+        followUps={followUps}
+        today={summary.today}
+        chip={chip}
+        search={search}
+        selectedCustomerId={selectedCustomerId}
+      />
+    );
   } else if (counts.all === 0) {
     // Nothing in the database yet.
     content = (
@@ -66,8 +74,13 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
   return (
     <div>
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <FollowUpFilterChips active={chip} counts={counts} search={search} />
-        <FollowUpSearchForm chip={chip} search={search} />
+        <FollowUpFilterChips
+          active={chip}
+          counts={counts}
+          search={search}
+          customerId={selectedCustomerId}
+        />
+        <FollowUpSearchForm chip={chip} search={search} customerId={selectedCustomerId} />
       </div>
       {content}
     </div>

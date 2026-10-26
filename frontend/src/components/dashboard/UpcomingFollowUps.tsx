@@ -10,7 +10,8 @@ import { Suspense } from "react";
 import { CalendarCheck } from "lucide-react";
 import Card from "@/components/Card";
 import ViewAllLink from "@/components/ViewAllLink";
-import FollowUpsPanel, { type DashboardSearchParams } from "./FollowUpsPanel";
+import type { DashboardSearchParams } from "@/lib/dashboard/followUpView";
+import FollowUpsPanel from "./FollowUpsPanel";
 import FollowUpsPanelSkeleton from "./FollowUpsPanelSkeleton";
 
 type UpcomingFollowUpsProps = {

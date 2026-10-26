@@ -19,6 +19,8 @@ type FollowUpFilterChipsProps = {
   active: FollowUpChip;
   counts: Record<FollowUpChip, number>;
   search: string;
+  /** The open customer panel, kept open when switching chips (null = none). */
+  customerId: number | null;
 };
 
 const baseClasses =
@@ -26,7 +28,12 @@ const baseClasses =
 const activeClasses = "bg-primary text-on-primary";
 const inactiveClasses = "border border-line text-ink hover:bg-hover";
 
-export default function FollowUpFilterChips({ active, counts, search }: FollowUpFilterChipsProps) {
+export default function FollowUpFilterChips({
+  active,
+  counts,
+  search,
+  customerId,
+}: FollowUpFilterChipsProps) {
   return (
     <nav aria-label="Filter follow-ups">
       <ul className="flex flex-wrap gap-2">
@@ -35,7 +42,7 @@ export default function FollowUpFilterChips({ active, counts, search }: FollowUp
           return (
             <li key={chip}>
               <Link
-                href={followUpViewHref(chip, search)}
+                href={followUpViewHref(chip, search, customerId)}
                 scroll={false}
                 aria-current={isActive ? "true" : undefined}
                 className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}

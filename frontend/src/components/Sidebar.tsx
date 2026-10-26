@@ -1,8 +1,11 @@
 // Sidebar: the left navigation column on tablet and desktop screens.
 // It is a Server Component; only the NavLink items inside it run in the
 // browser (they need the current URL to show which page is active).
+// "Follow-ups" gets a count pill (FollowUpCountBadge) when follow-ups are
+// due today or overdue.
 // On phones it is hidden and MobileNav is shown instead.
 import { CircleUserRound } from "lucide-react";
+import FollowUpCountBadge from "./FollowUpCountBadge";
 import Logo from "./Logo";
 import NavLink from "./NavLink";
 import SoonNavItem from "./SoonNavItem";
@@ -22,6 +25,7 @@ export default function Sidebar() {
             href={item.href}
             label={item.label}
             icon={item.icon}
+            badge={item.href === "/follow-ups" ? <FollowUpCountBadge /> : undefined}
           />
         ))}
         {soonItems.map((item) => (

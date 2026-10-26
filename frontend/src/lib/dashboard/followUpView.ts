@@ -31,10 +31,13 @@ export const DASHBOARD_FOLLOW_UP_ROWS = 5;
 const MAX_SEARCH_LENGTH = 100;
 
 /** One value from Next.js `searchParams`: missing, once, or repeated (?a=1&a=2). */
-type SearchParamValue = string | string[] | undefined;
+export type SearchParamValue = string | string[] | undefined;
+
+/** The dashboard page's URL search params, as Next.js gives them. */
+export type DashboardSearchParams = Record<string, SearchParamValue>;
 
 /** The first value of a search param, or undefined. */
-function firstValue(value: SearchParamValue): string | undefined {
+export function firstValue(value: SearchParamValue): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
@@ -76,12 +79,20 @@ export function followUpFiltersFor(chip: FollowUpChip, search: string): FollowUp
 /**
  * The dashboard link for a chip + search text.
  * "all" and blank search are left out, so the plain view is just "/".
+ * Pass `customerId` to keep that customer's side panel open (the chips and
+ * search do this); leave it out to close the panel (the panel's Back link).
  * Example: followUpViewHref("open", "R&D") -> "/?fu=open&fq=R%26D"
+ *          followUpViewHref("open", "", 12) -> "/?fu=open&customer=12"
  */
-export function followUpViewHref(chip: FollowUpChip, search: string): string {
+export function followUpViewHref(
+  chip: FollowUpChip,
+  search: string,
+  customerId: number | null = null,
+): string {
   return `/${buildQueryString({
     fu: chip === "all" ? undefined : chip,
     fq: search,
+    customer: customerId ?? undefined,
   })}`;
 }
 

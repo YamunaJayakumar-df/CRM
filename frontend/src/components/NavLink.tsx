@@ -7,7 +7,9 @@
 //
 // The icon arrives as a ready-made element (e.g. <Users />), not as the
 // component itself: the server can send elements to the browser, but it
-// cannot send functions.
+// cannot send functions. The optional `badge` works the same way: the
+// server renders it (e.g. the follow-up count) and this item just places
+// it on the right.
 "use client";
 
 import Link from "next/link";
@@ -17,9 +19,11 @@ type NavLinkProps = {
   href: string;
   label: string;
   icon: React.ReactNode;
+  /** Optional small element on the right, e.g. a count pill. */
+  badge?: React.ReactNode;
 };
 
-export default function NavLink({ href, label, icon }: NavLinkProps) {
+export default function NavLink({ href, label, icon, badge }: NavLinkProps) {
   const pathname = usePathname();
 
   // "/" must match exactly, otherwise Dashboard would be active on every page.
@@ -41,6 +45,7 @@ export default function NavLink({ href, label, icon }: NavLinkProps) {
     >
       <span className="text-icon">{icon}</span>
       {label}
+      {badge}
     </Link>
   );
 }

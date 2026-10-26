@@ -1,6 +1,7 @@
 // TopBar: the bar above every page with search, notifications and the
 // main "+ New" action. It lives in the root layout so every page gets it.
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 import PrimaryButtonLink from "./PrimaryButtonLink";
 
 export default function TopBar() {
@@ -31,17 +32,8 @@ export default function TopBar() {
       </form>
 
       <div className="ml-auto flex items-center gap-2">
-        {/*
-          Notifications: no dot or count yet. A later step will show how
-          many follow-ups are due today or overdue.
-        */}
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-icon transition-colors duration-150 hover:bg-hover"
-        >
-          <Bell size={20} strokeWidth={1.75} aria-hidden="true" />
-        </button>
+        {/* Links to Follow-ups; a red dot shows when some are due today or overdue. */}
+        <NotificationBell />
 
         {/*
           "+ New" goes to the Customers page for now. A later step will turn

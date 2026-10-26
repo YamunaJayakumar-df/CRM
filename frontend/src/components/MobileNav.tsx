@@ -2,7 +2,8 @@
 // where there is no room for the sidebar. It shows the logo and a single
 // row of links. If the row is wider than the screen, only the row scrolls
 // sideways, never the whole page. Pages marked "Soon" are left out to keep
-// the row short.
+// the row short. Like the Sidebar, "Follow-ups" gets the due count pill.
+import FollowUpCountBadge from "./FollowUpCountBadge";
 import Logo from "./Logo";
 import NavLink from "./NavLink";
 import { navItems } from "./navItems";
@@ -18,6 +19,7 @@ export default function MobileNav() {
             href={item.href}
             label={item.label}
             icon={item.icon}
+            badge={item.href === "/follow-ups" ? <FollowUpCountBadge /> : undefined}
           />
         ))}
       </nav>
