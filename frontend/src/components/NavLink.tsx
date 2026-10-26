@@ -39,7 +39,7 @@ export default function NavLink({ href, label, icon }: NavLinkProps) {
       className={`${baseClasses} ${stateClasses}`}
       aria-current={isActive ? "page" : undefined}
     >
-      <span className="text-accent">{icon}</span>
+      <span className="text-icon">{icon}</span>
       {label}
     </Link>
   );

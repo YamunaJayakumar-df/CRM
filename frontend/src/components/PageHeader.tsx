@@ -18,7 +18,7 @@ export default function PageHeader({
     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <div className="flex items-center gap-3">
-          {icon && <span className="text-accent">{icon}</span>}
+          {icon && <span className="text-icon">{icon}</span>}
           <h1 className="text-title font-medium text-ink">{title}</h1>
         </div>
         {subtitle && <p className="mt-1 text-base text-muted">{subtitle}</p>}

@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CRM",
+  title: "Nexora CRM",
   description:
     "Internal CRM for managing customers, interactions, and follow-ups.",
 };
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full bg-cream font-sans text-ink">
+      <body className="min-h-full bg-page font-sans text-ink">
         <div className="flex min-h-screen">
           <Sidebar />
           {/* min-w-0 lets this column shrink on small screens instead of

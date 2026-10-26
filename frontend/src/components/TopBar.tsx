@@ -38,7 +38,7 @@ export default function TopBar() {
         <button
           type="button"
           aria-label="Notifications"
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-accent transition-colors duration-150 hover:bg-hover"
+          className="flex h-11 w-11 items-center justify-center rounded-xl text-icon transition-colors duration-150 hover:bg-hover"
         >
           <Bell size={20} strokeWidth={1.75} aria-hidden="true" />
         </button>

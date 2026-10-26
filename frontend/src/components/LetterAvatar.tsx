@@ -7,11 +7,11 @@ type LetterAvatarProps = {
 
 // Full class names are written out so Tailwind can find them in this file.
 const tints = [
-  "bg-avatar-peach text-avatar-peach-ink",
-  "bg-avatar-sage text-avatar-sage-ink",
-  "bg-avatar-sand text-avatar-sand-ink",
+  "bg-avatar-blue text-avatar-blue-ink",
+  "bg-avatar-teal text-avatar-teal-ink",
+  "bg-avatar-violet text-avatar-violet-ink",
   "bg-avatar-rose text-avatar-rose-ink",
-  "bg-avatar-stone text-avatar-stone-ink",
+  "bg-avatar-green text-avatar-green-ink",
 ];
 
 export default function LetterAvatar({ name }: LetterAvatarProps) {

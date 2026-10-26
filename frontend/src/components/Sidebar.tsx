@@ -36,7 +36,7 @@ export default function Sidebar() {
       */}
       <div className="mt-auto flex items-center gap-3 px-3">
         <CircleUserRound
-          className="text-accent"
+          className="text-icon"
           size={32}
           strokeWidth={1.5}
           aria-hidden="true"

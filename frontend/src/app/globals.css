@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  Design tokens for the CRM.
+  Design tokens for Nexora CRM (cool blue / navy theme).
   Every colour, font and shadow is defined ONCE here. Tailwind turns each
   token into utility classes, e.g. --color-card -> `bg-card`, `border-card`.
   Components use the token names, never raw hex values, so changing a
@@ -10,47 +10,62 @@
 */
 @theme {
   /* Surfaces */
-  --color-cream: #f7f2ec; /* page background */
-  --color-sidebar: #f2ebe2; /* sidebar, a slightly deeper cream */
-  --color-hover: #ece3d8; /* hover background on cream surfaces */
-  --color-selected: #e8ddd0; /* active nav item */
-  --color-card: #fcfaf7; /* cards and inputs */
-  --color-line: #ebe2d8; /* soft 1px borders */
+  --color-page: #f5f7fb; /* page background, very light blue-grey */
+  --color-sidebar: #f0f3f9; /* sidebar, a touch deeper than the page */
+  --color-hover: #e9eef7; /* hover background on page/sidebar surfaces */
+  --color-selected: #e3e9f5; /* active nav item */
+  --color-card: #ffffff; /* cards and inputs */
+  --color-line: #e6ebf2; /* soft 1px borders */
 
   /* Text */
-  --color-ink: #2b211b; /* main text */
-  --color-muted: #6f6157; /* secondary text (AA on cream, sidebar and card) */
+  --color-ink: #1b2437; /* main text, deep navy */
+  --color-muted: #5f6b80; /* secondary text (AA on page, sidebar and card) */
 
   /* Brand */
-  --color-primary: #4a2e1f; /* primary button */
-  --color-primary-hover: #5e3c29; /* primary button on hover */
-  --color-accent: #9c5a33; /* line icons, links, focus ring */
+  --color-primary: #1e2b4a; /* primary button (navy) */
+  --color-primary-hover: #2b3c63; /* primary button on hover */
+  --color-accent: #2f55d4; /* links ("View all"), focus ring */
+  --color-icon: #33415c; /* line icons */
 
-  /* Status */
-  --color-open-bg: #f7dccf;
-  --color-open-ink: #9a4a2a;
-  --color-done-bg: #e3e9d6;
-  --color-done-ink: #5a6b3a;
-  --color-danger: #c2412d; /* "Today" / overdue dates */
+  /* Status pills (follow-up status, customer status) */
+  --color-open-bg: #e3ecfd;
+  --color-open-ink: #2f55d4;
+  --color-done-bg: #ddf3e6;
+  --color-done-ink: #1e7a46;
+  --color-danger: #c8312f; /* "Today" / overdue dates */
+
+  /* Priority pills */
+  --color-high-bg: #fde3e3;
+  --color-high-ink: #c8312f;
+  --color-medium-bg: #fdf0d9;
+  --color-medium-ink: #9a5606;
+  --color-low-bg: #ddf3e6;
+  --color-low-ink: #1e7a46;
+
+  /* Charts (sparklines and the status donut) */
+  --color-chart-blue: #4c6fff;
+  --color-chart-red: #f06272;
+  --color-chart-teal: #20b2a6;
+  --color-chart-green: #22a06b;
 
   /* Letter avatar tints (background + matching text) */
-  --color-avatar-peach: #f7dccf;
-  --color-avatar-peach-ink: #9a4a2a;
-  --color-avatar-sage: #e3e9d6;
-  --color-avatar-sage-ink: #5a6b3a;
-  --color-avatar-sand: #f0e3cc;
-  --color-avatar-sand-ink: #7a5a1f;
-  --color-avatar-rose: #f2d9d5;
-  --color-avatar-rose-ink: #8e3f3a;
-  --color-avatar-stone: #dde3e6;
-  --color-avatar-stone-ink: #44585f;
+  --color-avatar-blue: #e3ecfd;
+  --color-avatar-blue-ink: #2f55d4;
+  --color-avatar-teal: #ddf4f1;
+  --color-avatar-teal-ink: #127a70;
+  --color-avatar-violet: #ece7fd;
+  --color-avatar-violet-ink: #5b3fc4;
+  --color-avatar-rose: #fde6ea;
+  --color-avatar-rose-ink: #b4324a;
+  --color-avatar-green: #ddf3e6;
+  --color-avatar-green-ink: #1e7a46;
 
   /* Type: one extra size for the large page greeting (26px) */
   --text-title: 1.625rem;
   --text-title--line-height: 2.125rem;
 
   /* Elevation: one very soft shadow for cards */
-  --shadow-soft: 0 1px 2px rgb(43 33 27 / 0.04), 0 2px 8px rgb(43 33 27 / 0.03);
+  --shadow-soft: 0 1px 2px rgb(27 36 55 / 0.04), 0 2px 8px rgb(27 36 55 / 0.04);
 }
 
 /*

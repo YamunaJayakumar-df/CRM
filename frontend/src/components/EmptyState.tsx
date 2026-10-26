@@ -9,7 +9,7 @@ type EmptyStateProps = {
 export default function EmptyState({ icon, message, hint }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center px-4 py-12 text-center">
-      <span className="text-accent">{icon}</span>
+      <span className="text-icon">{icon}</span>
       <p className="mt-3 text-base text-ink">{message}</p>
       {hint && <p className="mt-1 text-sm text-muted">{hint}</p>}
     </div>
