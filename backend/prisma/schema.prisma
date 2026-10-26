@@ -23,6 +23,7 @@ model Customer {
   updatedAt   DateTime @updatedAt
 
   interactions Interaction[]
+  followUps    FollowUp[]
 }
 
 // The kinds of contact we log with a customer.
@@ -47,4 +48,29 @@ model Interaction {
 
   // Speeds up "all interactions for this customer".
   @@index([customerId])
+}
+
+// Whether a follow-up still needs doing.
+enum FollowUpStatus {
+  OPEN
+  DONE
+}
+
+// Something someone must do for a customer by a certain day.
+model FollowUp {
+  id         Int            @id @default(autoincrement())
+  // Restrict: the database refuses to delete a customer that still has follow-ups.
+  customer   Customer       @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customerId Int
+  title      String
+  // A plain calendar date (no time, no timezone), e.g. 2026-10-30.
+  dueDate    DateTime       @db.Date
+  status     FollowUpStatus @default(OPEN)
+  notes      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  // Speeds up "follow-ups of this customer" and "what is due / overdue".
+  @@index([customerId])
+  @@index([status, dueDate])
 }
