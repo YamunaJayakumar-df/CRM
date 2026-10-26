@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Design tokens for the CRM.
+  Every colour, font and shadow is defined ONCE here. Tailwind turns each
+  token into utility classes, e.g. --color-card -> `bg-card`, `border-card`.
+  Components use the token names, never raw hex values, so changing a
+  colour here updates the whole app.
+  The design is light only (no dark mode).
+*/
+@theme {
+  /* Surfaces */
+  --color-cream: #f7f2ec; /* page background */
+  --color-sidebar: #f2ebe2; /* sidebar, a slightly deeper cream */
+  --color-hover: #ece3d8; /* hover background on cream surfaces */
+  --color-selected: #e8ddd0; /* active nav item */
+  --color-card: #fcfaf7; /* cards and inputs */
+  --color-line: #ebe2d8; /* soft 1px borders */
+
+  /* Text */
+  --color-ink: #2b211b; /* main text */
+  --color-muted: #6f6157; /* secondary text (AA on cream, sidebar and card) */
+
+  /* Brand */
+  --color-primary: #4a2e1f; /* primary button */
+  --color-primary-hover: #5e3c29; /* primary button on hover */
+  --color-accent: #9c5a33; /* line icons, links, focus ring */
+
+  /* Status */
+  --color-open-bg: #f7dccf;
+  --color-open-ink: #9a4a2a;
+  --color-done-bg: #e3e9d6;
+  --color-done-ink: #5a6b3a;
+  --color-danger: #c2412d; /* "Today" / overdue dates */
+
+  /* Letter avatar tints (background + matching text) */
+  --color-avatar-peach: #f7dccf;
+  --color-avatar-peach-ink: #9a4a2a;
+  --color-avatar-sage: #e3e9d6;
+  --color-avatar-sage-ink: #5a6b3a;
+  --color-avatar-sand: #f0e3cc;
+  --color-avatar-sand-ink: #7a5a1f;
+  --color-avatar-rose: #f2d9d5;
+  --color-avatar-rose-ink: #8e3f3a;
+  --color-avatar-stone: #dde3e6;
+  --color-avatar-stone-ink: #44585f;
+
+  /* Type: one extra size for the large page greeting (26px) */
+  --text-title: 1.625rem;
+  --text-title--line-height: 2.125rem;
+
+  /* Elevation: one very soft shadow for cards */
+  --shadow-soft: 0 1px 2px rgb(43 33 27 / 0.04), 0 2px 8px rgb(43 33 27 / 0.03);
 }
 
+/*
+  The font is loaded by next/font in layout.tsx, which sets --font-inter.
+  `inline` makes Tailwind use the variable where it is applied.
+*/
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* One visible focus ring for every interactive element (keyboard users). */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Turn off animations for people who ask their system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
