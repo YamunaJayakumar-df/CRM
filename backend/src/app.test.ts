@@ -1,8 +1,15 @@
 // Tests for createApp(). supertest sends fake HTTP requests straight to the
 // app in memory, so no real port is opened (that's why we never import server.ts).
-import { describe, it, expect } from "vitest";
+//
+// app.ts loads the customer routes, which import the database client from db.ts.
+// vi.mock replaces db.ts with an empty fake, so these tests never connect to the
+// real database and do not need DATABASE_URL. (Vitest moves vi.mock to the top
+// of the file automatically, so it runs before app.js is imported.)
+import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { createApp } from "./app.js";
+
+vi.mock("./db.js", () => ({ prisma: {} }));
 
 describe("createApp", () => {
   // Protects the health check that developers and uptime monitors rely on.

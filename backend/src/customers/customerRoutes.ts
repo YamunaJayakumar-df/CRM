@@ -1,0 +1,104 @@
+// HTTP routes for customers: list, read one, create, update, delete.
+//
+// Why a separate file: app.ts only "mounts" this router at /customers, so all
+// customer URLs live together here. Interactions and follow-ups will copy this
+// same pattern: check the id -> validate the body -> call Prisma -> send JSON.
+//
+// NOTE: no login/permission checks yet; they are added in the later Auth step.
+import { Router } from "express";
+import { prisma } from "../db.js";
+import { parseId } from "../shared/parseId.js";
+import { sendBadRequest, sendNotFound } from "../shared/httpErrors.js";
+import {
+  validateCreateCustomer,
+  validateUpdateCustomer,
+} from "./customerValidation.js";
+
+// Safety limit on how many customers one list request returns.
+// Pagination (page by page) comes in a later step.
+const MAX_CUSTOMERS_PER_LIST = 500;
+
+export const customerRouter = Router();
+
+// GET /customers -> all customers, A to Z by company name.
+customerRouter.get("/", async (_req, res) => {
+  const customers = await prisma.customer.findMany({
+    orderBy: { companyName: "asc" },
+    take: MAX_CUSTOMERS_PER_LIST,
+  });
+  res.status(200).json(customers);
+});
+
+// GET /customers/:id -> one customer.
+customerRouter.get("/:id", async (req, res) => {
+  const id = parseId(req.params.id);
+  if (id === null) {
+    sendBadRequest(res, ["id must be a positive whole number"]);
+    return;
+  }
+
+  const customer = await prisma.customer.findUnique({ where: { id } });
+  if (customer === null) {
+    sendNotFound(res, "Customer");
+    return;
+  }
+  res.status(200).json(customer);
+});
+
+// POST /customers -> create a customer, returns it with its new id.
+customerRouter.post("/", async (req, res) => {
+  const result = validateCreateCustomer(req.body);
+  if (!result.ok) {
+    sendBadRequest(res, result.errors);
+    return;
+  }
+
+  const customer = await prisma.customer.create({ data: result.data });
+  res.status(201).json(customer);
+});
+
+// PATCH /customers/:id -> change only the fields that were sent.
+customerRouter.patch("/:id", async (req, res) => {
+  const id = parseId(req.params.id);
+  if (id === null) {
+    sendBadRequest(res, ["id must be a positive whole number"]);
+    return;
+  }
+
+  const result = validateUpdateCustomer(req.body);
+  if (!result.ok) {
+    sendBadRequest(res, result.errors);
+    return;
+  }
+
+  const existing = await prisma.customer.findUnique({ where: { id } });
+  if (existing === null) {
+    sendNotFound(res, "Customer");
+    return;
+  }
+
+  const customer = await prisma.customer.update({
+    where: { id },
+    data: result.data,
+  });
+  res.status(200).json(customer);
+});
+
+// DELETE /customers/:id -> remove a customer; 204 means "done, nothing to send back".
+// TODO (later step): refuse to delete customers that still have interactions or follow-ups.
+customerRouter.delete("/:id", async (req, res) => {
+  const id = parseId(req.params.id);
+  if (id === null) {
+    sendBadRequest(res, ["id must be a positive whole number"]);
+    return;
+  }
+
+  const existing = await prisma.customer.findUnique({ where: { id } });
+  if (existing === null) {
+    sendNotFound(res, "Customer");
+    return;
+  }
+
+  await prisma.customer.delete({ where: { id } });
+  res.status(204).end();
+});
