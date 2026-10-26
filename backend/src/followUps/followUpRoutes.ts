@@ -10,7 +10,10 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import type { Prisma } from "../generated/prisma/client.js";
+import { escapeSearchText } from "../shared/escapeSearchText.js";
 import { parseId } from "../shared/parseId.js";
+import { parseLimit } from "../shared/parseLimit.js";
+import { readSearchText } from "../shared/readSearchText.js";
 import { sendBadRequest, sendNotFound } from "../shared/httpErrors.js";
 import { INCLUDE_CUSTOMER_SUMMARY } from "../shared/customerSummary.js";
 import { plainDateToDate, todayInKolkata } from "../shared/plainDate.js";
@@ -22,8 +25,8 @@ import {
   validateUpdateFollowUp,
 } from "./followUpValidation.js";
 
-// Safety limit on how many follow-ups one list request returns.
-// Pagination (page by page) comes in a later step.
+// Safety limit on how many follow-ups one list request returns; also the
+// default and the largest allowed ?limit=. Pagination comes in a later step.
 const MAX_FOLLOW_UPS_PER_LIST = 500;
 
 // Reminder views for ?due=. Both only show OPEN follow-ups.
@@ -38,19 +41,24 @@ type ListFilters = {
   customerId?: number;
   status?: FollowUpStatusName;
   due?: DueView;
+  // Trimmed ?q= text, matched against the title and the customer's company name.
+  search?: string;
 };
 
 export const followUpRouter = Router();
 
 /**
- * Read and check every optional list filter (?customerId=, ?status=, ?due=).
+ * Read and check every optional list value
+ * (?customerId=, ?status=, ?due=, ?q= and ?limit=).
  * Collects ALL problems so the caller gets them in one 400 response.
  * Express gives a string, or an array for odd URLs like ?status=OPEN&status=DONE;
  * anything that is not a single string is invalid.
  */
 function readListFilters(
   query: Record<string, unknown>,
-): { ok: true; filters: ListFilters } | { ok: false; errors: string[] } {
+):
+  | { ok: true; filters: ListFilters; limit: number }
+  | { ok: false; errors: string[] } {
   const errors: string[] = [];
   const filters: ListFilters = {};
 
@@ -87,10 +95,40 @@ function readListFilters(
     errors.push("due cannot be combined with status=DONE");
   }
 
-  if (errors.length > 0) {
+  const searchResult = readSearchText(query.q);
+  if (searchResult.ok) {
+    filters.search = searchResult.search;
+  } else {
+    errors.push(searchResult.error);
+  }
+
+  const limitResult = parseLimit(query.limit, MAX_FOLLOW_UPS_PER_LIST);
+  if (!limitResult.ok) {
+    errors.push(limitResult.error);
+  }
+
+  // "!limitResult.ok" is already covered by errors; it is repeated so
+  // TypeScript knows limitResult.limit exists below.
+  if (errors.length > 0 || !limitResult.ok) {
     return { ok: false, errors };
   }
-  return { ok: true, filters };
+  return { ok: true, filters, limit: limitResult.limit };
+}
+
+/**
+ * Turn the search text into the Prisma conditions for an "OR": a follow-up
+ * matches when its title OR its customer's company name contains the text,
+ * ignoring upper/lower case. escapeSearchText makes "%" and "_" match literally.
+ */
+function buildSearchConditions(search: string): Prisma.FollowUpWhereInput[] {
+  const containsSearch = {
+    contains: escapeSearchText(search),
+    mode: "insensitive",
+  } as const;
+  return [
+    { title: containsSearch },
+    { customer: { companyName: containsSearch } },
+  ];
 }
 
 /**
@@ -115,11 +153,17 @@ function buildListWhere(
     where.status = "OPEN";
     where.dueDate = { lt: plainDateToDate(today) };
   }
+  // Only added when searching, so the "where" of other lists is unchanged.
+  if (filters.search !== undefined) {
+    where.OR = buildSearchConditions(filters.search);
+  }
   return where;
 }
 
 // GET /follow-ups -> soonest due first. Optional filters:
-// ?customerId=12, ?status=OPEN|DONE, ?due=today|overdue (combine with AND).
+// ?customerId=12, ?status=OPEN|DONE, ?due=today|overdue,
+// ?q=quote (title or company name contains "quote") (all combine with AND),
+// and ?limit=5 to return at most 5 (1 to 500; default 500).
 followUpRouter.get("/", async (req, res) => {
   const result = readListFilters(req.query);
   if (!result.ok) {
@@ -131,7 +175,7 @@ followUpRouter.get("/", async (req, res) => {
     where: buildListWhere(result.filters, todayInKolkata()),
     // id breaks ties so follow-ups due on the same day keep a stable order.
     orderBy: [{ dueDate: "asc" }, { id: "asc" }],
-    take: MAX_FOLLOW_UPS_PER_LIST,
+    take: result.limit,
     include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(200).json(followUps.map(toFollowUpResponse));

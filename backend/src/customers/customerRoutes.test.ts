@@ -45,6 +45,8 @@ const acme = {
   companyName: "Acme Ltd",
   contactName: "Jane Doe",
   website: "acme.com",
+  industry: null,
+  status: "ACTIVE" as const,
   email: "jane@acme.com",
   phone: null,
   notes: null,
@@ -59,6 +61,8 @@ const acmeAsJson = {
   companyName: "Acme Ltd",
   contactName: "Jane Doe",
   website: "acme.com",
+  industry: null,
+  status: "ACTIVE" as const,
   email: "jane@acme.com",
   phone: null,
   notes: null,
@@ -254,6 +258,36 @@ describe("POST /customers", () => {
     });
   });
 
+  // Protects that industry and status are saved when creating a customer.
+  it("passes industry and status through to the database", async () => {
+    const created = { ...acme, industry: "Healthcare", status: "INACTIVE" as const };
+    create.mockResolvedValue(created);
+
+    const res = await request(createApp())
+      .post("/customers")
+      .send({ companyName: "Acme Ltd", industry: " Healthcare ", status: "INACTIVE" });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ ...acmeAsJson, industry: "Healthcare", status: "INACTIVE" });
+    expect(create).toHaveBeenCalledWith({
+      data: { companyName: "Acme Ltd", industry: "Healthcare", status: "INACTIVE" },
+    });
+  });
+
+  // Protects that a wrong status never reaches the database.
+  it("returns 400 for a lowercase status and does not create", async () => {
+    const res = await request(createApp())
+      .post("/customers")
+      .send({ companyName: "Acme Ltd", status: "active" });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Invalid request",
+      details: ["status must be one of: ACTIVE, INACTIVE"],
+    });
+    expect(create).not.toHaveBeenCalled();
+  });
+
   // Protects that invalid bodies never reach the database.
   it("returns 400 with details for an invalid body and does not create", async () => {
     const res = await request(createApp())
@@ -297,6 +331,24 @@ describe("PATCH /customers/:id", () => {
     expect(update).toHaveBeenCalledWith({
       where: { id: 1 },
       data: { phone: "555-1234" },
+    });
+  });
+
+  // Protects changing the industry and marking a customer as INACTIVE.
+  it("passes industry and status through to the database", async () => {
+    const updated = { ...acme, industry: "Retail", status: "INACTIVE" as const };
+    findUnique.mockResolvedValue(acme);
+    update.mockResolvedValue(updated);
+
+    const res = await request(createApp())
+      .patch("/customers/1")
+      .send({ industry: " Retail ", status: "INACTIVE" });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ...acmeAsJson, industry: "Retail", status: "INACTIVE" });
+    expect(update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { industry: "Retail", status: "INACTIVE" },
     });
   });
 

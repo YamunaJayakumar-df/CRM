@@ -30,13 +30,27 @@ const kolkataDateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
 });
 
+// India's offset from UTC. India has used +05:30 all year (no daylight
+// saving time) since 1945, so a fixed offset is safe here.
+const KOLKATA_UTC_OFFSET = "+05:30";
+
 /**
  * Today's date in Asia/Kolkata as "YYYY-MM-DD".
  * Example: at 2026-10-26T20:00:00Z it is already 27 October in India -> "2026-10-27".
  * `now` defaults to the current time; tests pass a fixed time instead.
  */
 export function todayInKolkata(now: Date = new Date()): string {
-  const parts = kolkataDateFormatter.formatToParts(now);
+  return plainDateOfMoment(now);
+}
+
+/**
+ * The calendar day in Asia/Kolkata on which a moment (a timestamp such as
+ * createdAt or occurredAt) happened, as "YYYY-MM-DD".
+ * Example: 2026-10-26T17:30:00Z is 23:00 in India -> "2026-10-26";
+ *          2026-10-26T18:30:00Z is 00:00 the next day in India -> "2026-10-27".
+ */
+export function plainDateOfMoment(moment: Date): string {
+  const parts = kolkataDateFormatter.formatToParts(moment);
   const year = readDatePart(parts, "year");
   const month = readDatePart(parts, "month");
   const day = readDatePart(parts, "day");
@@ -51,9 +65,32 @@ function readDatePart(
   const part = parts.find((p) => p.type === type);
   if (part === undefined) {
     // Should never happen; fail loudly instead of returning a wrong date.
-    throw new Error(`Could not read the ${type} of today's date`);
+    throw new Error(`Could not read the ${type} of a date in Asia/Kolkata`);
   }
   return part.value;
+}
+
+/**
+ * The plain date `days` days after `plainDate` (negative goes back).
+ * Handles month and year ends: addDays("2026-12-31", 1) -> "2027-01-01",
+ * addDays("2028-03-01", -1) -> "2028-02-29" (leap year).
+ * Only call this with text that passed isPlainDate.
+ */
+export function addDays(plainDate: string, days: number): string {
+  // Working in UTC means there is no daylight saving jump to worry about.
+  const date = plainDateToDate(plainDate);
+  date.setUTCDate(date.getUTCDate() + days);
+  return dateToPlainDate(date);
+}
+
+/**
+ * The moment a plain date STARTS in India (00:00 in Asia/Kolkata).
+ * Example: "2026-10-26" -> 2026-10-25T18:30:00.000Z.
+ * Used to ask the database for timestamps (createdAt, occurredAt) that fall
+ * on certain Indian calendar days. Only call this with text that passed isPlainDate.
+ */
+export function startOfDayInKolkata(plainDate: string): Date {
+  return new Date(`${plainDate}T00:00:00${KOLKATA_UTC_OFFSET}`);
 }
 
 /**

@@ -8,6 +8,7 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { parseId } from "../shared/parseId.js";
+import { parseLimit } from "../shared/parseLimit.js";
 import { sendBadRequest, sendNotFound } from "../shared/httpErrors.js";
 import { INCLUDE_CUSTOMER_SUMMARY } from "../shared/customerSummary.js";
 import {
@@ -15,8 +16,8 @@ import {
   validateUpdateInteraction,
 } from "./interactionValidation.js";
 
-// Safety limit on how many interactions one list request returns.
-// Pagination (page by page) comes in a later step.
+// Safety limit on how many interactions one list request returns; also the
+// default and the largest allowed ?limit=. Pagination comes in a later step.
 const MAX_INTERACTIONS_PER_LIST = 500;
 
 export const interactionRouter = Router();
@@ -43,18 +44,29 @@ function readCustomerIdFilter(
   return { ok: true, customerId };
 }
 
-// GET /interactions -> newest first. Optional ?customerId=12 shows one customer's interactions.
+// GET /interactions -> newest first. Optional:
+// ?customerId=12 shows one customer's interactions,
+// ?limit=5 returns at most 5 (1 to 500; default 500).
 interactionRouter.get("/", async (req, res) => {
+  // Check both values first so the 400 lists every problem at once.
   const filter = readCustomerIdFilter(req.query.customerId);
-  if (!filter.ok) {
-    sendBadRequest(res, ["customerId must be a positive whole number"]);
+  const limitResult = parseLimit(req.query.limit, MAX_INTERACTIONS_PER_LIST);
+  if (!filter.ok || !limitResult.ok) {
+    const errors: string[] = [];
+    if (!filter.ok) {
+      errors.push("customerId must be a positive whole number");
+    }
+    if (!limitResult.ok) {
+      errors.push(limitResult.error);
+    }
+    sendBadRequest(res, errors);
     return;
   }
 
   const interactions = await prisma.interaction.findMany({
     where: { customerId: filter.customerId },
     orderBy: { occurredAt: "desc" },
-    take: MAX_INTERACTIONS_PER_LIST,
+    take: limitResult.limit,
     include: INCLUDE_CUSTOMER_SUMMARY,
   });
   res.status(200).json(interactions);

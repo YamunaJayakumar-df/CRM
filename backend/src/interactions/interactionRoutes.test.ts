@@ -159,6 +159,48 @@ describe("GET /interactions", () => {
       expect(findMany).not.toHaveBeenCalled();
     });
   }
+
+  // Protects ?limit= (e.g. the dashboard's "5 newest interactions").
+  it("passes ?limit=5 to the database as take: 5", async () => {
+    findMany.mockResolvedValue([call]);
+
+    const res = await request(createApp()).get("/interactions?limit=5");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith({
+      where: { customerId: undefined },
+      orderBy: { occurredAt: "desc" },
+      take: 5,
+      include: includeCustomerSummary,
+    });
+  });
+
+  // Protects that a limit below 1 is rejected before the database is asked.
+  it("returns 400 for ?limit=0 and does not query the database", async () => {
+    const res = await request(createApp()).get("/interactions?limit=0");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Invalid request",
+      details: ["limit must be a whole number from 1 to 500"],
+    });
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  // Protects that a bad customerId AND a bad limit are both reported at once.
+  it("lists both problems for a bad customerId and a bad limit", async () => {
+    const res = await request(createApp()).get("/interactions?customerId=abc&limit=501");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Invalid request",
+      details: [
+        "customerId must be a positive whole number",
+        "limit must be a whole number from 1 to 500",
+      ],
+    });
+    expect(findMany).not.toHaveBeenCalled();
+  });
 });
 
 describe("GET /interactions/:id", () => {

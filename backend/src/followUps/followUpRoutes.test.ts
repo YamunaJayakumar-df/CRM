@@ -293,6 +293,103 @@ describe("GET /follow-ups with invalid filters", () => {
   });
 });
 
+describe("GET /follow-ups?q= (search) and ?limit=", () => {
+  // Protects the search: title OR company name contains the text, ignoring case,
+  // combined (AND) with the other filters.
+  it("searches title and company name together with other filters", async () => {
+    findMany.mockResolvedValue([sendQuote]);
+
+    const res = await request(createApp()).get(
+      "/follow-ups?q=%20quote%20&customerId=12&status=OPEN",
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([sendQuoteAsJson]);
+    expect(findMany).toHaveBeenCalledWith({
+      where: {
+        customerId: 12,
+        status: "OPEN",
+        OR: [
+          { title: { contains: "quote", mode: "insensitive" } },
+          { customer: { companyName: { contains: "quote", mode: "insensitive" } } },
+        ],
+      },
+      ...listOrderAndLimit,
+    });
+  });
+
+  // Protects that "%" is searched literally (escaped), not as "match anything".
+  it("escapes % in the search text before asking the database", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/follow-ups?q=%25");
+
+    expect(res.status).toBe(200);
+    expect(findMany.mock.calls[0][0]?.where?.OR).toEqual([
+      { title: { contains: "\\%", mode: "insensitive" } },
+      { customer: { companyName: { contains: "\\%", mode: "insensitive" } } },
+    ]);
+  });
+
+  // Protects that a blank search does not add an OR (the list is unfiltered).
+  it("treats a blank search as no filter", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/follow-ups?q=%20%20");
+
+    expect(res.status).toBe(200);
+    expect(findMany.mock.calls[0][0]?.where).not.toHaveProperty("OR");
+  });
+
+  // Protects ?limit= (e.g. the dashboard's "next 5 follow-ups").
+  it("passes ?limit=5 to the database as take: 5", async () => {
+    findMany.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/follow-ups?limit=5");
+
+    expect(res.status).toBe(200);
+    expect(findMany).toHaveBeenCalledWith({
+      ...listOrderAndLimit,
+      where: { customerId: undefined, status: undefined },
+      take: 5,
+    });
+  });
+
+  // Protects that bad search text and a bad limit are all reported at once,
+  // before the database is asked.
+  it("returns 400 with every q and limit problem and does not query the database", async () => {
+    const res = await request(createApp()).get(
+      `/follow-ups?status=open&q=${"a".repeat(101)}&limit=0`,
+    );
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Invalid request",
+      details: [
+        "status must be one of: OPEN, DONE",
+        "q must be at most 100 characters",
+        "limit must be a whole number from 1 to 500",
+      ],
+    });
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  // Protects that repeated ?q and ?limit values (arrays) are rejected.
+  it("returns 400 for repeated ?q and ?limit and does not query the database", async () => {
+    const res = await request(createApp()).get("/follow-ups?q=a&q=b&limit=1&limit=2");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Invalid request",
+      details: [
+        "q must be a single search text",
+        "limit must be a whole number from 1 to 500",
+      ],
+    });
+    expect(findMany).not.toHaveBeenCalled();
+  });
+});
+
 describe("GET /follow-ups/:id", () => {
   // Protects reading one follow-up by id.
   it("returns 200 with the follow-up", async () => {
@@ -351,6 +448,28 @@ describe("POST /follow-ups", () => {
     });
   });
 
+  // Protects that a chosen priority is saved.
+  it("passes priority through to the database", async () => {
+    findCustomer.mockResolvedValue(acme);
+    create.mockResolvedValue({ ...sendQuote, priority: "HIGH" as const });
+
+    const res = await request(createApp())
+      .post("/follow-ups")
+      .send({ customerId: 12, title: "Send quote", dueDate: "2026-10-30", priority: "HIGH" });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toEqual({ ...sendQuoteAsJson, priority: "HIGH" });
+    expect(create).toHaveBeenCalledWith({
+      data: {
+        customerId: 12,
+        title: "Send quote",
+        dueDate: new Date("2026-10-30T00:00:00.000Z"),
+        priority: "HIGH",
+      },
+      include: includeCustomerSummary,
+    });
+  });
+
   // Protects that invalid bodies never reach the database.
   it("returns 400 with details for an invalid body and makes no database calls", async () => {
     const res = await request(createApp())
@@ -402,6 +521,24 @@ describe("PATCH /follow-ups/:id", () => {
     expect(update).toHaveBeenCalledWith({
       where: { id: 1 },
       data: { status: "DONE" },
+      include: includeCustomerSummary,
+    });
+  });
+
+  // Protects changing only the priority.
+  it("passes priority through to the database", async () => {
+    findUnique.mockResolvedValue(sendQuote);
+    update.mockResolvedValue({ ...sendQuote, priority: "LOW" as const });
+
+    const res = await request(createApp())
+      .patch("/follow-ups/1")
+      .send({ priority: "LOW" });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ...sendQuoteAsJson, priority: "LOW" });
+    expect(update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: { priority: "LOW" },
       include: includeCustomerSummary,
     });
   });
