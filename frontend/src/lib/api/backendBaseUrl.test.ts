@@ -28,4 +28,21 @@ describe("resolveBackendBaseUrl", () => {
       "BACKEND_URL must start with http:// or https://",
     );
   });
+
+  // Protects against a password in BACKEND_URL leaking into error logs.
+  it("throws for a URL with a user name or password", () => {
+    expect(() => resolveBackendBaseUrl("https://user:secret@api.example.com")).toThrow(
+      "BACKEND_URL must not contain a user name or password",
+    );
+  });
+
+  // Protects against broken request URLs like "base?x=1/customers".
+  it("throws for a URL with ? or #", () => {
+    expect(() => resolveBackendBaseUrl("http://127.0.0.1:4000?x=1")).toThrow(
+      "BACKEND_URL must not contain ? or #",
+    );
+    expect(() => resolveBackendBaseUrl("http://127.0.0.1:4000/#x")).toThrow(
+      "BACKEND_URL must not contain ? or #",
+    );
+  });
 });

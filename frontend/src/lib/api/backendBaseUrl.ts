@@ -29,6 +29,14 @@ export function resolveBackendBaseUrl(rawValue: string | undefined): string {
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new Error("BACKEND_URL must start with http:// or https://");
   }
+  // A user name/password would leak into error logs (fetch puts the full URL
+  // in its errors), and "?" or "#" would break "base + /path".
+  if (url.username !== "" || url.password !== "") {
+    throw new Error("BACKEND_URL must not contain a user name or password");
+  }
+  if (url.search !== "" || url.hash !== "") {
+    throw new Error("BACKEND_URL must not contain ? or #");
+  }
 
   return trimmed.replace(/\/+$/, "");
 }
