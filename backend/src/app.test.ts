@@ -34,4 +34,22 @@ describe("createApp", () => {
 
     expect(res.status).toBe(404);
   });
+
+  // Protects that we don't tell attackers which framework the server uses.
+  it("does not send the X-Powered-By header", async () => {
+    const res = await request(createApp()).get("/health");
+
+    expect(res.headers["x-powered-by"]).toBeUndefined();
+  });
+
+  // Protects that an oversized body (over express.json's 100 KB limit) gets a
+  // clear 413 "too large" instead of a confusing 500.
+  it("returns 413 for a JSON body over the size limit", async () => {
+    const bigBody = { notes: "x".repeat(200_000) };
+
+    const res = await request(createApp()).post("/customers").send(bigBody);
+
+    expect(res.status).toBe(413);
+    expect(res.body).toEqual({ error: "Request body could not be read" });
+  });
 });

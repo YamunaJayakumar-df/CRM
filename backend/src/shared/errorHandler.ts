@@ -16,18 +16,50 @@ function isJsonParseError(err: unknown): boolean {
   );
 }
 
-/** 400 for a malformed JSON body; passes every other error on to the next handler. */
+/**
+ * Other problems reading the request body, e.g. too large (413) or an
+ * unsupported encoding (415). express.json() marks these with a type that
+ * starts with "entity." and a 4xx status. Returns that status, or null.
+ */
+function readBodyErrorStatus(err: unknown): number | null {
+  if (typeof err !== "object" || err === null) {
+    return null;
+  }
+  if (!("type" in err) || typeof err.type !== "string") {
+    return null;
+  }
+  if (!("status" in err) || typeof err.status !== "number") {
+    return null;
+  }
+  const isClientError = err.status >= 400 && err.status < 500;
+  if (!err.type.startsWith("entity.") || !isClientError) {
+    return null;
+  }
+  return err.status;
+}
+
+/**
+ * 400 for a malformed JSON body, or the matching 4xx for other body problems
+ * (too large, bad encoding). Passes every other error on to the next handler.
+ */
 export function handleInvalidJson(
   err: unknown,
   _req: Request,
   res: Response,
   next: NextFunction,
 ): void {
-  if (!isJsonParseError(err)) {
-    next(err);
+  if (isJsonParseError(err)) {
+    res.status(400).json({ error: "Request body is not valid JSON" });
     return;
   }
-  res.status(400).json({ error: "Request body is not valid JSON" });
+
+  const status = readBodyErrorStatus(err);
+  if (status !== null) {
+    res.status(status).json({ error: "Request body could not be read" });
+    return;
+  }
+
+  next(err);
 }
 
 /**

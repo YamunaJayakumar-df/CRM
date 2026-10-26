@@ -17,6 +17,10 @@ import {
 export function createApp() {
   const app = express();
 
+  // Don't advertise "X-Powered-By: Express" on every response
+  // (it tells attackers which framework to target).
+  app.disable("x-powered-by");
+
   // Parse JSON request bodies into req.body (used by POST/PATCH routes).
   app.use(express.json());
 

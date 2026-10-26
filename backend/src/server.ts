@@ -24,6 +24,11 @@ function readPort(): number {
 
 const port = readPort();
 
-createApp().listen(port, () => {
+// Only accept connections from this computer. There is no login yet, so
+// other devices on the same Wi-Fi must not be able to reach the API.
+// (Revisit when we deploy, after the Auth step.)
+const HOST = "127.0.0.1";
+
+createApp().listen(port, HOST, () => {
   console.log(`CRM backend listening on http://localhost:${port}`);
 });

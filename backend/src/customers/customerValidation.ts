@@ -4,6 +4,10 @@
 // which fields are allowed, trims text, enforces length limits, and collects
 // EVERY problem at once so the user can fix them all in one go.
 // It only checks data; it never touches the database or the HTTP response.
+import {
+  hasControlCharacters,
+  hasControlCharactersInMultilineText,
+} from "../shared/textChecks.js";
 
 // The only fields a client may send. Anything else (id, createdAt, ...) is rejected.
 const ALLOWED_FIELDS = [
@@ -147,6 +151,10 @@ function readCompanyName(raw: unknown, errors: string[]): string | undefined {
     errors.push("companyName cannot be empty");
     return undefined;
   }
+  if (hasControlCharacters(companyName)) {
+    errors.push("companyName contains invalid characters");
+    return undefined;
+  }
   if (companyName.length > MAX_LENGTHS.companyName) {
     errors.push(
       `companyName must be at most ${MAX_LENGTHS.companyName} characters`,
@@ -176,6 +184,15 @@ function readOptionalText(
   const text = raw.trim();
   if (text === "") {
     return null;
+  }
+  // Only notes may contain line breaks and tabs.
+  const hasInvalidCharacters =
+    field === "notes"
+      ? hasControlCharactersInMultilineText(text)
+      : hasControlCharacters(text);
+  if (hasInvalidCharacters) {
+    errors.push(`${field} contains invalid characters`);
+    return undefined;
   }
   if (text.length > MAX_LENGTHS[field]) {
     errors.push(`${field} must be at most ${MAX_LENGTHS[field]} characters`);

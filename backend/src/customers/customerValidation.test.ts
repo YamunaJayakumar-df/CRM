@@ -405,3 +405,35 @@ describe("validateUpdateCustomer", () => {
     }
   });
 });
+
+describe("control characters in text fields", () => {
+  // Protects against NUL, which Postgres refuses (would cause a 500 error).
+  it("rejects a NUL character in companyName", () => {
+    const result = validateCreateCustomer({ companyName: "Acme\u0000" });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: ["companyName contains invalid characters"],
+    });
+  });
+
+  // Protects that single-line fields like phone stay on one line.
+  it("rejects a tab in phone", () => {
+    const result = validateUpdateCustomer({ phone: "123\t456" });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: ["phone contains invalid characters"],
+    });
+  });
+
+  // Protects that notes may still have several lines.
+  it("allows line breaks and tabs in notes", () => {
+    const result = validateUpdateCustomer({ notes: "Line 1\nLine 2\tend" });
+
+    expect(result).toEqual({
+      ok: true,
+      data: { notes: "Line 1\nLine 2\tend" },
+    });
+  });
+});
