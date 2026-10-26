@@ -16,6 +16,8 @@ model Customer {
   id          Int      @id @default(autoincrement())
   companyName String
   contactName String?
+  // Company website or domain, e.g. "acme.com".
+  website     String?
   email       String?
   phone       String?
   notes       String?

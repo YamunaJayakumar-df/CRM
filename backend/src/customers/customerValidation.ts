@@ -13,6 +13,7 @@ import {
 const ALLOWED_FIELDS = [
   "companyName",
   "contactName",
+  "website",
   "email",
   "phone",
   "notes",
@@ -24,6 +25,7 @@ type CustomerField = (typeof ALLOWED_FIELDS)[number];
 const MAX_LENGTHS: Record<CustomerField, number> = {
   companyName: 200,
   contactName: 200,
+  website: 200,
   email: 254, // the longest email address the standards allow
   phone: 50,
   notes: 5000,
@@ -33,10 +35,20 @@ const MAX_LENGTHS: Record<CustomerField, number> = {
 // Real delivery checks are out of scope for an internal CRM.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// A website may be "acme.com" or start with http:// or https://, but must not
+// name any other scheme like "javascript:" or "data:". Those could run code
+// if the frontend ever showed the website as a clickable link.
+const ANY_SCHEME_PATTERN = /^[a-z][a-z0-9+.-]*:/i;
+const WEB_SCHEME_PATTERN = /^https?:\/\//i;
+
 /** Clean data for creating a customer. Missing optional fields are left out. */
 export type CreateCustomerData = {
   companyName: string;
   contactName?: string | null;
+  // No strict URL format check on purpose: people type "acme.com",
+  // "www.acme.com" or "https://acme.com", and all are fine. It is checked
+  // like other single-line text, and other schemes ("javascript:") are rejected.
+  website?: string | null;
   email?: string | null;
   phone?: string | null;
   notes?: string | null;
@@ -125,7 +137,13 @@ function readCustomerFields(
     }
   }
 
-  const optionalFields = ["contactName", "email", "phone", "notes"] as const;
+  const optionalFields = [
+    "contactName",
+    "website",
+    "email",
+    "phone",
+    "notes",
+  ] as const;
   for (const field of optionalFields) {
     if (!Object.hasOwn(body, field)) {
       continue;
@@ -202,5 +220,14 @@ function readOptionalText(
     errors.push("email must be a valid email address");
     return undefined;
   }
+  if (field === "website" && hasNonWebScheme(text)) {
+    errors.push("website must be a domain or an http(s):// address");
+    return undefined;
+  }
   return text;
+}
+
+/** True for "javascript:...", "data:..." etc.; false for "acme.com" and "https://acme.com". */
+function hasNonWebScheme(website: string): boolean {
+  return ANY_SCHEME_PATTERN.test(website) && !WEB_SCHEME_PATTERN.test(website);
 }

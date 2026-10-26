@@ -21,6 +21,7 @@ describe("validateCreateCustomer", () => {
     const body = {
       companyName: "Acme Ltd",
       contactName: "Jane Doe",
+      website: "acme.com",
       email: "jane@acme.com",
       phone: "+44 20 1234 5678",
       notes: "Prefers email.",
@@ -406,6 +407,99 @@ describe("validateUpdateCustomer", () => {
   });
 });
 
+describe("website field", () => {
+  // Protects that a website is saved, without stray spaces. Any form people
+  // type ("acme.com", "https://...") is fine; there is no URL format check.
+  it("accepts a website and trims spaces", () => {
+    const result = validateCreateCustomer({
+      companyName: "Acme Ltd",
+      website: "  https://www.acme.com  ",
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      data: { companyName: "Acme Ltd", website: "https://www.acme.com" },
+    });
+  });
+
+  // Protects that a blank website means "no website" (null), not "".
+  it("turns an empty or whitespace-only website into null", () => {
+    const empty = validateCreateCustomer({ companyName: "Acme", website: "" });
+    const spaces = validateCreateCustomer({ companyName: "Acme", website: "   " });
+
+    expect(empty).toEqual({ ok: true, data: { companyName: "Acme", website: null } });
+    expect(spaces).toEqual({ ok: true, data: { companyName: "Acme", website: null } });
+  });
+
+  // Protects that clients may explicitly send null for website.
+  it("accepts null", () => {
+    const result = validateCreateCustomer({ companyName: "Acme", website: null });
+
+    expect(result).toEqual({ ok: true, data: { companyName: "Acme", website: null } });
+  });
+
+  // Protects the website length limit (200 OK, 201 rejected).
+  it("enforces the 200 character limit", () => {
+    const atLimit = validateCreateCustomer({
+      companyName: "Acme",
+      website: "w".repeat(200),
+    });
+    const overLimit = validateCreateCustomer({
+      companyName: "Acme",
+      website: "w".repeat(201),
+    });
+
+    expect(atLimit.ok).toBe(true);
+    expect(overLimit).toEqual({
+      ok: false,
+      errors: ["website must be at most 200 characters"],
+    });
+  });
+
+  // Protects that website stays on one line (a tab is not allowed, unlike notes).
+  it("rejects a tab", () => {
+    const result = validateCreateCustomer({
+      companyName: "Acme",
+      website: "acme\t.com",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: ["website contains invalid characters"],
+    });
+  });
+
+  // Protects against NUL, which Postgres refuses (would cause a 500 error).
+  it("rejects a NUL character", () => {
+    const result = validateCreateCustomer({
+      companyName: "Acme",
+      website: "acme.com\u0000",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: ["website contains invalid characters"],
+    });
+  });
+
+  // Protects against numbers or other non-text values.
+  it("rejects a number", () => {
+    const result = validateCreateCustomer({ companyName: "Acme", website: 42 });
+
+    expect(result).toEqual({
+      ok: false,
+      errors: ["website must be a string or null"],
+    });
+  });
+
+  // Protects that website alone is a valid update (e.g. "add their website").
+  it("is allowed as the only field in an update", () => {
+    const result = validateUpdateCustomer({ website: " acme.com " });
+
+    expect(result).toEqual({ ok: true, data: { website: "acme.com" } });
+  });
+});
+
 describe("control characters in text fields", () => {
   // Protects against NUL, which Postgres refuses (would cause a 500 error).
   it("rejects a NUL character in companyName", () => {
@@ -435,5 +529,27 @@ describe("control characters in text fields", () => {
       ok: true,
       data: { notes: "Line 1\nLine 2\tend" },
     });
+  });
+});
+
+describe("website scheme check", () => {
+  // Protects the normal ways people type a website.
+  it("accepts a plain domain and http(s) addresses", () => {
+    for (const website of ["acme.com", "www.acme.com", "https://acme.com", "HTTP://acme.com"]) {
+      expect(validateUpdateCustomer({ website })).toEqual({
+        ok: true,
+        data: { website },
+      });
+    }
+  });
+
+  // Protects against links that would run code if shown as a clickable link.
+  it("rejects javascript: and data: values in any letter case", () => {
+    for (const website of ["javascript:alert(1)", "JavaScript:alert(1)", "data:text/html,x"]) {
+      expect(validateUpdateCustomer({ website })).toEqual({
+        ok: false,
+        errors: ["website must be a domain or an http(s):// address"],
+      });
+    }
   });
 });
