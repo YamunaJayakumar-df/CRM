@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { closePanelLink, customerPanelLink } from "@/lib/customerPanel/panelPlace";
 import {
   customerEditHref,
+  customerPageHref,
   customersListHref,
   readCustomerSearch,
   readCustomersPanelPlace,
@@ -46,6 +47,19 @@ describe("readCustomersPanelPlace", () => {
     const place = readCustomersPanelPlace({ q: "R&D", customer: "38", tab: "notes" });
     expect(customerPanelLink(place, 38, "notes")).toBe("/customers?q=R%26D&customer=38&tab=notes");
     expect(closePanelLink(place)).toBe("/customers?q=R%26D");
+  });
+});
+
+describe("customerPageHref", () => {
+  it("links to the customer's page, Overview tab by default", () => {
+    expect(customerPageHref(34)).toBe("/customers/34");
+    expect(customerPageHref(34, "overview")).toBe("/customers/34");
+  });
+
+  it("adds the other tabs to the URL", () => {
+    expect(customerPageHref(34, "interactions")).toBe("/customers/34?tab=interactions");
+    expect(customerPageHref(34, "follow-ups")).toBe("/customers/34?tab=follow-ups");
+    expect(customerPageHref(34, "notes")).toBe("/customers/34?tab=notes");
   });
 });
 

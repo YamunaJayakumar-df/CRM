@@ -30,11 +30,11 @@ export default function CustomerContactLines({ customer }: CustomerContactLinesP
 
   const hasAnyDetail = contactName !== "" || phone !== "" || email !== "" || websiteText !== "";
   if (!hasAnyDetail) {
-    return <p className="mt-5 text-sm text-muted">No contact details yet.</p>;
+    return <p className="text-sm text-muted">No contact details yet.</p>;
   }
 
   return (
-    <ul className="mt-5 flex flex-col gap-2.5 text-sm text-ink">
+    <ul className="flex flex-col gap-2.5 text-sm text-ink">
       {contactName !== "" && (
         <ContactLine icon={<UserRound {...iconProps} />} label="Contact">
           <span className="truncate">{contactName}</span>

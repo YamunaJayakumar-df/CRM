@@ -5,6 +5,7 @@
 // encoding) keeps them consistent and avoids gluing user text into URLs.
 import { buildQueryString } from "@/lib/api/buildQueryString";
 import type { PageSearchParams, PanelPlace } from "@/lib/customerPanel/panelPlace";
+import type { CustomerTab } from "@/lib/dashboard/customerPanelView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 
 /** Longest search text we pass on to the backend (its limit is 100 too). */
@@ -38,6 +39,18 @@ export function customersPanelPlace(search: string): PanelPlace {
 /** The Customers page's panel place, read from its URL search params. */
 export function readCustomersPanelPlace(params: PageSearchParams): PanelPlace {
   return customersPanelPlace(readCustomerSearch(params.q));
+}
+
+/**
+ * A customer's own page, optionally on one tab. The Overview tab is the
+ * default, so it is left out of the URL.
+ * Example: customerPageHref(34) -> "/customers/34";
+ *          customerPageHref(34, "notes") -> "/customers/34?tab=notes"
+ */
+export function customerPageHref(customerId: number, tab: CustomerTab = "overview"): string {
+  return `/customers/${customerId}${buildQueryString({
+    tab: tab === "overview" ? undefined : tab,
+  })}`;
 }
 
 /** The "Add customer" page. */

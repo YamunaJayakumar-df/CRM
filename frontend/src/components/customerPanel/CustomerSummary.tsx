@@ -44,9 +44,13 @@ export default function CustomerSummary({
         <CloseCardLink href={closeHref} />
       </div>
 
-      <CustomerContactLines customer={customer} />
+      <div className="mt-5">
+        <CustomerContactLines customer={customer} />
+      </div>
       <CustomerSectionLinks customerId={customer.id} place={place} sections={sections} />
-      <CustomerQuickActions customerId={customer.id} returnTo={returnTo} />
+      <div className="mt-5">
+        <CustomerQuickActions customerId={customer.id} returnTo={returnTo} />
+      </div>
     </div>
   );
 }

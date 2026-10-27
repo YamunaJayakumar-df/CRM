@@ -24,7 +24,7 @@ const primaryClasses = `${baseClasses} flex-1 bg-primary text-on-primary hover:b
 
 export default function CustomerQuickActions({ customerId, returnTo }: CustomerQuickActionsProps) {
   return (
-    <div className="mt-5 flex gap-2">
+    <div className="flex gap-2">
       <Link href={customerEditHref(customerId, returnTo)} className={outlineClasses}>
         <Pencil {...iconProps} />
         Edit<span className="sr-only"> customer</span>
