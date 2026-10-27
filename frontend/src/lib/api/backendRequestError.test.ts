@@ -12,3 +12,11 @@ describe("BackendRequestError", () => {
     expect(error.message).toBe("Backend request GET /customers/12 failed with status 404");
   });
 });
+
+describe("BackendRequestError with a method", () => {
+  it("names the method in the message", () => {
+    const error = new BackendRequestError("/customers/12", 500, "PATCH");
+    expect(error.status).toBe(500);
+    expect(error.message).toBe("Backend request PATCH /customers/12 failed with status 500");
+  });
+});

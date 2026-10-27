@@ -14,9 +14,10 @@ export class BackendRequestError extends Error {
    * @param pathname URL path without the query string, e.g. "/customers/12".
    *   (The query string is left out because it may contain search text.)
    * @param status HTTP status code from the backend.
+   * @param method HTTP method of the request; GET unless a form saved something.
    */
-  constructor(pathname: string, status: number) {
-    super(`Backend request GET ${pathname} failed with status ${status}`);
+  constructor(pathname: string, status: number, method = "GET") {
+    super(`Backend request ${method} ${pathname} failed with status ${status}`);
     this.name = "BackendRequestError";
     this.status = status;
   }
