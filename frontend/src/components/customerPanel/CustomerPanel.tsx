@@ -58,7 +58,8 @@ export default async function CustomerPanel({ searchParams, readPlace }: Custome
 
   return (
     <aside aria-label="Customer details" className={frameClasses}>
-      <RevealPanelOnSmallScreens key={String(params.customer)} />
+      {/* Keys must differ from the Suspense key below (React compares keys as text). */}
+      <RevealPanelOnSmallScreens key={`reveal-${String(params.customer)}`} />
       {customerId === null ? (
         <CustomerNotFound backHref={backHref} />
       ) : (
