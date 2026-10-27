@@ -18,7 +18,7 @@ export type NewInteractionOptions = {
 
 /**
  * The "Log interaction" page.
- * Example: newInteractionHref({ customerId: 12, type: "MEETING", returnTo: "/?customer=12" })
+ * Example: newInteractionHref({ customerId: 12, type: "MEETING", returnTo: "/customers/12" })
  *   -> "/interactions/new?customerId=12&type=MEETING&returnTo=%2F%3Fcustomer%3D12"
  */
 export function newInteractionHref(options: NewInteractionOptions = {}): string {

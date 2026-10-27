@@ -15,16 +15,13 @@ import { followUpViewHref, type FollowUpChip } from "@/lib/dashboard/followUpVie
 type FollowUpSearchFormProps = {
   chip: FollowUpChip;
   search: string;
-  /** The open customer panel, kept open when searching (null = none). */
-  customerId: number | null;
 };
 
-export default function FollowUpSearchForm({ chip, search, customerId }: FollowUpSearchFormProps) {
+export default function FollowUpSearchForm({ chip, search }: FollowUpSearchFormProps) {
   return (
     <div className="flex items-center gap-2">
       <Form action="/" scroll={false} role="search" className="relative min-w-0 flex-1 lg:w-64 lg:flex-none">
         {chip !== "all" && <input type="hidden" name="fu" value={chip} />}
-        {customerId !== null && <input type="hidden" name="customer" value={customerId} />}
         <label htmlFor="follow-up-search" className="sr-only">
           Search follow-ups
         </label>
@@ -49,7 +46,7 @@ export default function FollowUpSearchForm({ chip, search, customerId }: FollowU
       </Form>
       {search !== "" && (
         <Link
-          href={followUpViewHref(chip, "", customerId)}
+          href={followUpViewHref(chip, "")}
           scroll={false}
           className="inline-flex h-11 shrink-0 items-center rounded-xl px-3 text-sm font-medium text-accent hover:bg-hover"
         >

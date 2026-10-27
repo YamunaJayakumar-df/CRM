@@ -15,7 +15,7 @@ export type NewFollowUpOptions = {
 
 /**
  * The "New follow-up" page.
- * Example: newFollowUpHref({ customerId: 12, returnTo: "/?customer=12" })
+ * Example: newFollowUpHref({ customerId: 12, returnTo: "/customers/12" })
  *   -> "/follow-ups/new?customerId=12&returnTo=%2F%3Fcustomer%3D12"
  */
 export function newFollowUpHref(options: NewFollowUpOptions = {}): string {

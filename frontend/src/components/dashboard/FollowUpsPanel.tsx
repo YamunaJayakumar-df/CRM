@@ -2,7 +2,7 @@
 // chips, search box, and up to 5 follow-ups.
 //
 // Async Server Component, rendered inside <Suspense> by UpcomingFollowUps.
-// 1. Read ?fu (chip), ?fq (search) and ?customer (open panel) from the URL.
+// 1. Read ?fu (chip) and ?fq (search) from the URL.
 // 2. Ask the backend for the summary (chip counts, today's date) and the
 //    matching follow-ups AT THE SAME TIME (Promise.all), not one after another.
 // If the backend fails, the error goes to app/error.tsx ("Try again").
@@ -10,11 +10,6 @@ import { Inbox, SearchX } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { listFollowUps } from "@/lib/api/queries";
 import { getDashboardSummaryOnce } from "@/lib/api/requestMemo";
-import {
-  customerPanelHref,
-  readCustomerId,
-  readCustomerTab,
-} from "@/lib/dashboard/customerPanelView";
 import {
   chipCounts,
   followUpFiltersFor,
@@ -37,13 +32,8 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
   const params = await searchParams;
   const chip = readFollowUpChip(params.fu);
   const search = readFollowUpSearch(params.fq);
-  const selectedCustomerId = readCustomerId(params.customer);
-  // This exact dashboard view (filter, open panel and its tab), for the
-  // row actions to come back to.
-  const returnTo =
-    selectedCustomerId === null
-      ? followUpViewHref(chip, search)
-      : customerPanelHref(selectedCustomerId, chip, search, readCustomerTab(params.tab));
+  // This exact dashboard view (same filter), for the row actions to come back to.
+  const returnTo = followUpViewHref(chip, search);
 
   const [summary, followUps] = await Promise.all([
     getDashboardSummaryOnce(),
@@ -87,9 +77,8 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
           active={chip}
           counts={counts}
           search={search}
-          customerId={selectedCustomerId}
         />
-        <FollowUpSearchForm chip={chip} search={search} customerId={selectedCustomerId} />
+        <FollowUpSearchForm chip={chip} search={search} />
       </div>
       {content}
     </div>

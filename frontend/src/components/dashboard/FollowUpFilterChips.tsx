@@ -19,8 +19,6 @@ type FollowUpFilterChipsProps = {
   active: FollowUpChip;
   counts: Record<FollowUpChip, number>;
   search: string;
-  /** The open customer panel, kept open when switching chips (null = none). */
-  customerId: number | null;
 };
 
 const baseClasses =
@@ -32,7 +30,6 @@ export default function FollowUpFilterChips({
   active,
   counts,
   search,
-  customerId,
 }: FollowUpFilterChipsProps) {
   return (
     <nav aria-label="Filter follow-ups">
@@ -42,7 +39,7 @@ export default function FollowUpFilterChips({
           return (
             <li key={chip}>
               <Link
-                href={followUpViewHref(chip, search, customerId)}
+                href={followUpViewHref(chip, search)}
                 scroll={false}
                 aria-current={isActive ? "true" : undefined}
                 className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}

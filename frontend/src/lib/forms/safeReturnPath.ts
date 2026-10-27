@@ -4,7 +4,7 @@
 // redirected to it blindly, a link like
 //   /customers/5/edit?returnTo=https://evil.example
 // would send our user to another website after saving (an "open redirect").
-// We only accept paths INSIDE this app, like "/?customer=5" or "/customers".
+// We only accept paths INSIDE this app, like "/customers/5" or "/?fu=open".
 
 // Used only to test where a path would lead; never contacted.
 const TEST_ORIGIN = "http://crm.invalid";

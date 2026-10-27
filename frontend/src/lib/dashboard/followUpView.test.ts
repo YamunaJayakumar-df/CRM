@@ -60,17 +60,6 @@ describe("followUpViewHref", () => {
     expect(followUpViewHref("open", "R&D")).toBe("/?fu=open&fq=R%26D");
     expect(followUpViewHref("all", "acme")).toBe("/?fq=acme");
   });
-
-  // Protects that switching chips or searching keeps the customer panel open.
-  it("keeps the open customer when a customer id is given", () => {
-    expect(followUpViewHref("open", "", 12)).toBe("/?fu=open&customer=12");
-    expect(followUpViewHref("all", "acme", 7)).toBe("/?fq=acme&customer=7");
-  });
-
-  // Protects that the panel's Back link (no id) closes the panel.
-  it("leaves the customer out when no id is given", () => {
-    expect(followUpViewHref("open", "", null)).toBe("/?fu=open");
-  });
 });
 
 describe("chipCounts", () => {

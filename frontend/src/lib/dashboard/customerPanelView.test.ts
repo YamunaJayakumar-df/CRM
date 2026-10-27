@@ -1,24 +1,6 @@
-// Tests for the customer side panel's URL helpers.
+// Tests for reading a customer id and tab from the URL.
 import { describe, expect, it } from "vitest";
-import {
-  customerPanelHref,
-  hasCustomerParam,
-  readCustomerId,
-  readCustomerTab,
-} from "./customerPanelView";
-
-describe("hasCustomerParam", () => {
-  it("is true for any non-blank value", () => {
-    expect(hasCustomerParam("12")).toBe(true);
-    expect(hasCustomerParam("abc")).toBe(true);
-  });
-
-  it("is false when missing or blank", () => {
-    expect(hasCustomerParam(undefined)).toBe(false);
-    expect(hasCustomerParam("")).toBe(false);
-    expect(hasCustomerParam("   ")).toBe(false);
-  });
-});
+import { readCustomerId, readCustomerTab } from "./customerPanelView";
 
 describe("readCustomerId", () => {
   it("reads a positive whole number", () => {
@@ -56,18 +38,5 @@ describe("readCustomerTab", () => {
     expect(readCustomerTab(undefined)).toBe("overview");
     expect(readCustomerTab("files")).toBe("overview");
     expect(readCustomerTab("NOTES")).toBe("overview");
-  });
-});
-
-describe("customerPanelHref", () => {
-  it("leaves out the defaults", () => {
-    expect(customerPanelHref(12, "all", "")).toBe("/?customer=12");
-  });
-
-  it("keeps the follow-up filter and adds the tab", () => {
-    expect(customerPanelHref(12, "open", "R&D", "notes")).toBe(
-      "/?fu=open&fq=R%26D&customer=12&tab=notes",
-    );
-    expect(customerPanelHref(3, "overdue", "", "overview")).toBe("/?fu=overdue&customer=3");
   });
 });

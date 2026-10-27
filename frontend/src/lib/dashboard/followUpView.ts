@@ -79,20 +79,12 @@ export function followUpFiltersFor(chip: FollowUpChip, search: string): FollowUp
 /**
  * The dashboard link for a chip + search text.
  * "all" and blank search are left out, so the plain view is just "/".
- * Pass `customerId` to keep that customer's side panel open (the chips and
- * search do this); leave it out to close the panel (the panel's Back link).
  * Example: followUpViewHref("open", "R&D") -> "/?fu=open&fq=R%26D"
- *          followUpViewHref("open", "", 12) -> "/?fu=open&customer=12"
  */
-export function followUpViewHref(
-  chip: FollowUpChip,
-  search: string,
-  customerId: number | null = null,
-): string {
+export function followUpViewHref(chip: FollowUpChip, search: string): string {
   return `/${buildQueryString({
     fu: chip === "all" ? undefined : chip,
     fq: search,
-    customer: customerId ?? undefined,
   })}`;
 }
 
