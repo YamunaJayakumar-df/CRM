@@ -12,8 +12,8 @@
 import { listFollowUps, listInteractions, getCustomer } from "@/lib/api/queries";
 import type { FollowUp, Interaction } from "@/lib/api/types";
 import { customerEditHref } from "@/lib/customers/customerHrefs";
-import { customerPanelHref, type CustomerTab } from "@/lib/dashboard/customerPanelView";
-import type { FollowUpChip } from "@/lib/dashboard/followUpView";
+import { customerPanelLink, type PanelPlace } from "@/lib/customerPanel/panelPlace";
+import type { CustomerTab } from "@/lib/dashboard/customerPanelView";
 import { todayInKolkata } from "@/lib/format/dates";
 import CustomerActions from "./CustomerActions";
 import CustomerFollowUpsTab from "./CustomerFollowUpsTab";
@@ -34,8 +34,8 @@ const TAB_ROWS = 20;
 type CustomerPanelContentProps = {
   customerId: number;
   tab: CustomerTab;
-  chip: FollowUpChip;
-  search: string;
+  /** The page the panel is on, and the filters its links keep. */
+  place: PanelPlace;
   backHref: string;
 };
 
@@ -61,8 +61,7 @@ function loadAllFollowUps(customerId: number, tab: CustomerTab): Promise<FollowU
 export default async function CustomerPanelContent({
   customerId,
   tab,
-  chip,
-  search,
+  place,
   backHref,
 }: CustomerPanelContentProps) {
   const [customer, openFollowUps, interactions, allFollowUps] = await Promise.all([
@@ -79,8 +78,8 @@ export default async function CustomerPanelContent({
 
   // Read after the backend calls, so it is always the real "today" (India).
   const today = todayInKolkata(new Date());
-  // This exact view (same filter and tab): the Edit and Log links come back here.
-  const panelHref = customerPanelHref(customer.id, chip, search, tab);
+  // This exact view (same page, filters and tab): the Edit and Log links come back here.
+  const panelHref = customerPanelLink(place, customer.id, tab);
 
   let tabContent: React.ReactNode;
   if (tab === "interactions") {
@@ -125,8 +124,7 @@ export default async function CustomerPanelContent({
       <CustomerTabs
         customerId={customer.id}
         active={tab}
-        chip={chip}
-        search={search}
+        place={place}
         openFollowUpCount={openFollowUps.length}
         countLimit={TAB_ROWS}
       />

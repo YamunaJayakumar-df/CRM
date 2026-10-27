@@ -19,6 +19,7 @@
 //   message with a "Try again" button.
 import { Suspense } from "react";
 import CustomerPanel from "@/components/customerPanel/CustomerPanel";
+import { readDashboardPanelPlace } from "@/lib/dashboard/customerPanelView";
 import DashboardGreeting from "@/components/dashboard/DashboardGreeting";
 import DashboardGreetingSkeleton from "@/components/dashboard/DashboardGreetingSkeleton";
 import FollowUpStatusCard from "@/components/dashboard/FollowUpStatusCard";
@@ -34,7 +35,7 @@ export default function DashboardPage({ searchParams }: PageProps<"/">) {
     // the main column fills the width.
     <div className="flex flex-col gap-8 xl:flex-row">
       <Suspense fallback={null}>
-        <CustomerPanel searchParams={searchParams} />
+        <CustomerPanel searchParams={searchParams} readPlace={readDashboardPanelPlace} />
       </Suspense>
 
       <div className="min-w-0 flex-1">

@@ -1,5 +1,9 @@
-// CustomerPanel: the customer details panel on the dashboard. It appears
-// when the URL has ?customer=12 (see lib/dashboard/customerPanelView.ts).
+// CustomerPanel: the customer details panel. It appears when the URL has
+// ?customer=12 (see lib/dashboard/customerPanelView.ts).
+//
+// Used on several pages. Each page passes `readPlace`, which says which page
+// this is and which of its filters to keep (see lib/customerPanel/panelPlace.ts),
+// so Back, the tabs and Edit always return to the same page and filters.
 //
 // Placement: on extra-wide screens (xl) it is a 420px column on the RIGHT
 // that stays in view while the page scrolls (sticky). On smaller screens it
@@ -14,23 +18,24 @@
 // "Customer not found" straight away.
 import { Suspense } from "react";
 import {
+  closePanelLink,
+  type PageSearchParams,
+  type PanelPlaceReader,
+} from "@/lib/customerPanel/panelPlace";
+import {
   hasCustomerParam,
   readCustomerId,
   readCustomerTab,
 } from "@/lib/dashboard/customerPanelView";
-import {
-  followUpViewHref,
-  readFollowUpChip,
-  readFollowUpSearch,
-  type DashboardSearchParams,
-} from "@/lib/dashboard/followUpView";
 import CustomerNotFound from "./CustomerNotFound";
 import CustomerPanelContent from "./CustomerPanelContent";
 import CustomerPanelSkeleton from "./CustomerPanelSkeleton";
 import RevealPanelOnSmallScreens from "./RevealPanelOnSmallScreens";
 
 type CustomerPanelProps = {
-  searchParams: Promise<DashboardSearchParams>;
+  searchParams: Promise<PageSearchParams>;
+  /** Reads this page's place (path + filters to keep) from its URL. */
+  readPlace: PanelPlaceReader;
 };
 
 const frameClasses = [
@@ -39,18 +44,17 @@ const frameClasses = [
   "xl:sticky xl:top-6 xl:order-last xl:max-h-[calc(100vh-3rem)] xl:w-105 xl:shrink-0 xl:self-start xl:overflow-y-auto",
 ].join(" ");
 
-export default async function CustomerPanel({ searchParams }: CustomerPanelProps) {
+export default async function CustomerPanel({ searchParams, readPlace }: CustomerPanelProps) {
   const params = await searchParams;
   if (!hasCustomerParam(params.customer)) {
     return null;
   }
 
   const customerId = readCustomerId(params.customer);
-  const chip = readFollowUpChip(params.fu);
-  const search = readFollowUpSearch(params.fq);
   const tab = readCustomerTab(params.tab);
-  // "Back" closes the panel but keeps the follow-up filter.
-  const backHref = followUpViewHref(chip, search);
+  const place = readPlace(params);
+  // "Back" closes the panel but stays on this page with its filters.
+  const backHref = closePanelLink(place);
 
   return (
     <aside aria-label="Customer details" className={frameClasses}>
@@ -62,8 +66,7 @@ export default async function CustomerPanel({ searchParams }: CustomerPanelProps
           <CustomerPanelContent
             customerId={customerId}
             tab={tab}
-            chip={chip}
-            search={search}
+            place={place}
             backHref={backHref}
           />
         </Suspense>

@@ -1,4 +1,5 @@
-// Reads and writes the dashboard's customer side panel in the URL.
+// Reads and writes the customer side panel in the URL.
+// (The links for OTHER pages are built in lib/customerPanel/panelPlace.ts.)
 //
 // Clicking a customer on the dashboard opens a panel with their details.
 // Which customer, and which tab of the panel, live in the URL, e.g.
@@ -7,8 +8,18 @@
 // the links work without JavaScript, and an open panel can be bookmarked or
 // shared. The follow-up filter (?fu, ?fq) is always carried along, so
 // opening or closing the panel never resets the table the user was looking at.
-import { buildQueryString } from "@/lib/api/buildQueryString";
-import { firstValue, type FollowUpChip, type SearchParamValue } from "./followUpView";
+import {
+  customerPanelLink,
+  type PanelPlace,
+  type PageSearchParams,
+} from "@/lib/customerPanel/panelPlace";
+import {
+  firstValue,
+  readFollowUpChip,
+  readFollowUpSearch,
+  type FollowUpChip,
+  type SearchParamValue,
+} from "./followUpView";
 
 /** The panel's tabs that can be opened ("files" is not built yet). */
 export type CustomerTab = "overview" | "interactions" | "follow-ups" | "notes";
@@ -54,6 +65,22 @@ export function readCustomerTab(value: SearchParamValue): CustomerTab {
 }
 
 /**
+ * The dashboard as a place for the customer panel: path "/" and its
+ * follow-up filter (?fu, ?fq). "all" and blank search are left out.
+ */
+export function dashboardPanelPlace(chip: FollowUpChip, search: string): PanelPlace {
+  return {
+    path: "/",
+    keep: { fu: chip === "all" ? undefined : chip, fq: search },
+  };
+}
+
+/** The dashboard's panel place, read from its URL search params. */
+export function readDashboardPanelPlace(params: PageSearchParams): PanelPlace {
+  return dashboardPanelPlace(readFollowUpChip(params.fu), readFollowUpSearch(params.fq));
+}
+
+/**
  * The dashboard link that opens a customer's panel, keeping the follow-up
  * filter. "all", blank search and the "overview" tab are left out.
  * Example: customerPanelHref(12, "open", "R&D", "notes")
@@ -65,10 +92,5 @@ export function customerPanelHref(
   search: string,
   tab: CustomerTab = "overview",
 ): string {
-  return `/${buildQueryString({
-    fu: chip === "all" ? undefined : chip,
-    fq: search,
-    customer: customerId,
-    tab: tab === "overview" ? undefined : tab,
-  })}`;
+  return customerPanelLink(dashboardPanelPlace(chip, search), customerId, tab);
 }

@@ -2,23 +2,20 @@
 // Follow-ups (n), Notes, Files).
 //
 // Each tab is a plain link that changes ?tab= in the URL and keeps the
-// other params (?customer, ?fu, ?fq), so the server renders the chosen tab.
+// page and its filters (from `place`), so the server renders the chosen tab.
 // The active tab is underlined in the accent colour AND marked with
 // aria-current, so it is not shown by colour alone.
 // "Files" is not built yet, so it is greyed out with a "Soon" tag.
 // If the tabs are wider than the panel, only this row scrolls sideways.
 import Link from "next/link";
-import {
-  customerPanelHref,
-  type CustomerTab,
-} from "@/lib/dashboard/customerPanelView";
-import type { FollowUpChip } from "@/lib/dashboard/followUpView";
+import { customerPanelLink, type PanelPlace } from "@/lib/customerPanel/panelPlace";
+import type { CustomerTab } from "@/lib/dashboard/customerPanelView";
 
 type CustomerTabsProps = {
   customerId: number;
   active: CustomerTab;
-  chip: FollowUpChip;
-  search: string;
+  /** The page the panel is on, and the filters its links keep. */
+  place: PanelPlace;
   /** How many open follow-ups were loaded (at most `countLimit`). */
   openFollowUpCount: number;
   /** When the count reaches this, it is shown as e.g. "20+". */
@@ -33,8 +30,7 @@ const inactiveClasses = "border-transparent text-muted hover:text-ink";
 export default function CustomerTabs({
   customerId,
   active,
-  chip,
-  search,
+  place,
   openFollowUpCount,
   countLimit,
 }: CustomerTabsProps) {
@@ -66,7 +62,7 @@ export default function CustomerTabs({
           return (
             <li key={tab}>
               <Link
-                href={customerPanelHref(customerId, chip, search, tab)}
+                href={customerPanelLink(place, customerId, tab)}
                 scroll={false}
                 aria-current={isActive ? "page" : undefined}
                 className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
