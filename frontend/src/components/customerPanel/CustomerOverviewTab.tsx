@@ -58,6 +58,7 @@ export default function CustomerOverviewTab({
           followUps={openFollowUps}
           today={today}
           emptyMessage="No open follow-ups"
+          returnTo={returnTo}
         />
       </PanelSection>
     </div>

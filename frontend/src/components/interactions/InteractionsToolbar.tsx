@@ -5,9 +5,9 @@
 // the company name from the backend and so loads inside its own <Suspense>.
 // The controls wrap onto extra rows on narrow screens.
 import { Suspense } from "react";
+import CustomerFilterChip from "@/components/CustomerFilterChip";
 import Skeleton from "@/components/Skeleton";
-import type { InteractionsState } from "@/lib/interactions/interactionsView";
-import CustomerFilterChip from "./CustomerFilterChip";
+import { interactionsHref, type InteractionsState } from "@/lib/interactions/interactionsView";
 import DateRangeLinks from "./DateRangeLinks";
 import InteractionSearchForm from "./InteractionSearchForm";
 import ViewToggle from "./ViewToggle";
@@ -29,7 +29,10 @@ export default function InteractionsToolbar({ state }: InteractionsToolbarProps)
       {state.customerId !== null && (
         <div>
           <Suspense fallback={<Skeleton className="h-11 w-56" />}>
-            <CustomerFilterChip state={state} customerId={state.customerId} />
+            <CustomerFilterChip
+              customerId={state.customerId}
+              removeHref={interactionsHref({ ...state, customerId: null })}
+            />
           </Suspense>
         </div>
       )}

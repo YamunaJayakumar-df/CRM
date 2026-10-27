@@ -1,6 +1,8 @@
-// CustomerFilterChip: "Customer: Acme Corp ×", shown when the URL has
-// ?customerId=12 (the customer panel's "View all" link adds it).
-// The × link removes only the customer filter and keeps the rest.
+// CustomerFilterChip: "Customer: Acme Corp ×", shown above a list page
+// (Interactions, Follow-ups) when the URL has ?customerId=12 (the customer
+// panel's "View all" link adds it).
+// The × link (`removeHref`) removes only the customer filter and keeps the
+// rest; each page builds that link with its own URL helper.
 //
 // Async Server Component (inside <Suspense>): it asks the backend for the
 // company name. If no customer has that id, the chip says "Customer #12"
@@ -8,14 +10,14 @@
 import Link from "next/link";
 import { X } from "lucide-react";
 import { getCustomer } from "@/lib/api/queries";
-import { interactionsHref, type InteractionsState } from "@/lib/interactions/interactionsView";
 
 type CustomerFilterChipProps = {
-  state: InteractionsState;
   customerId: number;
+  /** The same page without the customer filter. */
+  removeHref: string;
 };
 
-export default async function CustomerFilterChip({ state, customerId }: CustomerFilterChipProps) {
+export default async function CustomerFilterChip({ customerId, removeHref }: CustomerFilterChipProps) {
   const customer = await getCustomer(customerId);
   const name = customer?.companyName ?? `#${customerId}`;
 
@@ -25,7 +27,7 @@ export default async function CustomerFilterChip({ state, customerId }: Customer
         <span className="text-muted">Customer:</span> {name}
       </span>
       <Link
-        href={interactionsHref({ ...state, customerId: null })}
+        href={removeHref}
         scroll={false}
         aria-label={`Remove customer filter (${name})`}
         className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted transition-colors duration-150 -outline-offset-2 hover:bg-hover hover:text-ink"

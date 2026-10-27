@@ -4,13 +4,18 @@
 // Due dates that need attention now (today or overdue, only for OPEN ones)
 // are red; overdue ones also get a warning icon and the word "overdue" for
 // screen readers, so it never depends on colour alone.
+// Each item ends with a small pencil link to edit it (comes back to
+// returnTo). Mark done lives in the Edit form and on the Follow-ups page:
+// the panel is too narrow for a second icon without squeezing the title.
 // Shows an EmptyState with `emptyMessage` when the list is empty.
 import { CalendarCheck, CalendarClock, TriangleAlert } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import PriorityBadge from "@/components/PriorityBadge";
 import StatusBadge from "@/components/StatusBadge";
+import EditFollowUpIconLink from "@/components/followUps/EditFollowUpIconLink";
 import type { FollowUp } from "@/lib/api/types";
 import { formatDueDate } from "@/lib/format/dates";
+import { followUpEditHref } from "@/lib/followUps/followUpHrefs";
 import { followUpDueState } from "@/lib/format/followUpDue";
 
 type CustomerFollowUpListProps = {
@@ -19,6 +24,8 @@ type CustomerFollowUpListProps = {
   today: string;
   emptyMessage: string;
   showStatus?: boolean;
+  /** The current dashboard URL (panel open), so Edit comes back here. */
+  returnTo: string;
 };
 
 export default function CustomerFollowUpList({
@@ -26,6 +33,7 @@ export default function CustomerFollowUpList({
   today,
   emptyMessage,
   showStatus = false,
+  returnTo,
 }: CustomerFollowUpListProps) {
   if (followUps.length === 0) {
     return (
@@ -64,6 +72,11 @@ export default function CustomerFollowUpList({
               {showStatus && <StatusBadge status={followUp.status} />}
               <PriorityBadge priority={followUp.priority} />
             </div>
+            <EditFollowUpIconLink
+              href={followUpEditHref(followUp.id, returnTo)}
+              title={followUp.title}
+              className="-my-2.5 -mr-3"
+            />
           </li>
         );
       })}

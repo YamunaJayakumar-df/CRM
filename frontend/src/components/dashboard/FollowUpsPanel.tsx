@@ -10,11 +10,16 @@ import { Inbox, SearchX } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { listFollowUps } from "@/lib/api/queries";
 import { getDashboardSummaryOnce } from "@/lib/api/requestMemo";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import {
+  customerPanelHref,
+  readCustomerId,
+  readCustomerTab,
+} from "@/lib/dashboard/customerPanelView";
 import {
   chipCounts,
   followUpFiltersFor,
   readFollowUpChip,
+  followUpViewHref,
   readFollowUpSearch,
   type DashboardSearchParams,
 } from "@/lib/dashboard/followUpView";
@@ -33,6 +38,12 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
   const chip = readFollowUpChip(params.fu);
   const search = readFollowUpSearch(params.fq);
   const selectedCustomerId = readCustomerId(params.customer);
+  // This exact dashboard view (filter, open panel and its tab), for the
+  // row actions to come back to.
+  const returnTo =
+    selectedCustomerId === null
+      ? followUpViewHref(chip, search)
+      : customerPanelHref(selectedCustomerId, chip, search, readCustomerTab(params.tab));
 
   const [summary, followUps] = await Promise.all([
     getDashboardSummaryOnce(),
@@ -49,6 +60,7 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
         chip={chip}
         search={search}
         selectedCustomerId={selectedCustomerId}
+        returnTo={returnTo}
       />
     );
   } else if (counts.all === 0) {

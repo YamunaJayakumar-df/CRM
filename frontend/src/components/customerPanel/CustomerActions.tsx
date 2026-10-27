@@ -7,20 +7,21 @@
 // - Meeting and Note open the Log interaction form with this customer and
 //   that type already chosen; after saving (or Cancel) the user comes back
 //   to this same dashboard view (returnTo).
-// - Follow-up needs its form, which comes in a later step, so it is
-//   disabled with "Soon" for now.
+// - Follow-up (the main action) opens the New follow-up form with this
+//   customer already chosen, and also comes back here after saving.
 // On phones the four small actions fill one row and Follow-up gets its own
 // full-width row; from `sm` up all five sit in one row.
 import { CalendarDays, Mail, Phone, Plus, StickyNote } from "lucide-react";
 import type { Customer } from "@/lib/api/types";
 import { mailtoHref } from "@/lib/format/mailtoHref";
 import { telHref } from "@/lib/format/telHref";
+import { newFollowUpHref } from "@/lib/followUps/followUpHrefs";
 import { newInteractionHref } from "@/lib/interactions/interactionHrefs";
 import ActionTile from "./ActionTile";
 
 type CustomerActionsProps = {
   customer: Customer;
-  /** The current dashboard URL (panel open), to come back to after logging. */
+  /** The current dashboard URL (panel open), to come back to after saving. */
   returnTo: string;
 };
 
@@ -54,8 +55,7 @@ export default function CustomerActions({ customer, returnTo }: CustomerActionsP
       <ActionTile
         label="Follow-up"
         icon={<Plus {...iconProps} />}
-        href={null}
-        disabledReason="Soon"
+        href={newFollowUpHref({ customerId: customer.id, returnTo })}
         primary
         className="col-span-4 sm:col-span-1"
       />

@@ -75,6 +75,26 @@ export function listCustomers(search?: string): Promise<Customer[]> {
   return backendGet<Customer[]>(`/customers${buildQueryString({ q: search })}`);
 }
 
+/**
+ * One follow-up by id (with its customer's summary).
+ * Returns null when `id` is not a positive whole number or no follow-up has
+ * that id, so a page can simply call notFound(). Other failures throw.
+ */
+export async function getFollowUp(id: number): Promise<FollowUp | null> {
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  try {
+    return await backendGet<FollowUp>(`/follow-ups/${id}`);
+  } catch (error) {
+    if (error instanceof BackendRequestError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 /** Follow-ups, soonest due first, narrowed by the given filters. */
 export function listFollowUps(filters: FollowUpFilters = {}): Promise<FollowUp[]> {
   const query = buildQueryString({

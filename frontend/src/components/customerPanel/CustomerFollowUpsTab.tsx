@@ -11,12 +11,15 @@ type CustomerFollowUpsTabProps = {
   followUps: FollowUp[];
   /** Today in India, "YYYY-MM-DD". */
   today: string;
+  /** The current dashboard URL (panel open), for the Edit links. */
+  returnTo: string;
 };
 
 export default function CustomerFollowUpsTab({
   customerId,
   followUps,
   today,
+  returnTo,
 }: CustomerFollowUpsTabProps) {
   return (
     <PanelSection
@@ -28,6 +31,7 @@ export default function CustomerFollowUpsTab({
         today={today}
         emptyMessage="No follow-ups yet"
         showStatus
+        returnTo={returnTo}
       />
     </PanelSection>
   );

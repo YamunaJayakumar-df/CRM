@@ -1,10 +1,10 @@
 // QuickActions: a 2 x 2 grid of shortcuts on the dashboard.
-// "Add Customer" and "Log Interaction" open their forms (Log comes back to
-// the dashboard after saving). "Create Follow-up" opens the Follow-ups page
-// until its form exists. View Calendar is disabled until the Calendar page
-// exists.
+// "Add Customer", "Log Interaction" and "Create Follow-up" open their
+// forms (Log and Create come back to the dashboard after saving).
+// View Calendar is disabled until the Calendar page exists.
 import { CalendarDays, CalendarPlus, MessageSquarePlus, UserPlus } from "lucide-react";
 import { NEW_CUSTOMER_HREF } from "@/lib/customers/customerHrefs";
+import { newFollowUpHref } from "@/lib/followUps/followUpHrefs";
 import { newInteractionHref } from "@/lib/interactions/interactionHrefs";
 import QuickActionLink from "./QuickActionLink";
 
@@ -20,7 +20,7 @@ export default function QuickActions() {
         icon={<MessageSquarePlus {...iconProps} />}
       />
       <QuickActionLink
-        href="/follow-ups"
+        href={newFollowUpHref({ returnTo: "/" })}
         label="Create Follow-up"
         icon={<CalendarPlus {...iconProps} />}
       />

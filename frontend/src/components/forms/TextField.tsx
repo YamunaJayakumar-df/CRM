@@ -1,4 +1,4 @@
-// TextField: a labelled one-line text box (text, email, phone, ...).
+// TextField: a labelled one-line text box (text, email, phone, date, ...).
 //
 // Uncontrolled: the browser keeps what is typed; `defaultValue` is only the
 // starting text. That is all a Server Action form needs, and it works even
@@ -14,7 +14,7 @@ type TextFieldProps = {
   name: string;
   defaultValue?: string;
   required?: boolean;
-  type?: "text" | "email" | "tel" | "url";
+  type?: "text" | "email" | "tel" | "url" | "date";
   maxLength?: number;
   autoComplete?: string;
   placeholder?: string;

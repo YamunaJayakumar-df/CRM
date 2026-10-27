@@ -1,5 +1,7 @@
 // NotificationBell: the bell in the top bar. It links to the Follow-ups
 // page and shows a small red dot when follow-ups are due today or overdue.
+// The link opens the most urgent list: Overdue if any, else Due today,
+// else the plain page (see dueFollowUpsHref).
 //
 // The count needs the backend, so it loads inside <Suspense>. The fallback
 // is the same bell without a dot, so the top bar never waits and never
@@ -8,20 +10,22 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { Bell } from "lucide-react";
-import { getDueFollowUpCount } from "@/lib/api/dueFollowUpCount";
+import { getDueFollowUpCounts } from "@/lib/api/dueFollowUpCount";
+import { dueFollowUpsHref } from "@/lib/followUps/followUpsView";
 import { dueFollowUpsLabel } from "@/lib/format/dueFollowUpsLabel";
 
 type BellLinkProps = {
   /** Follow-ups due today or overdue; 0 = no dot. */
   count: number;
+  href: string;
 };
 
-function BellLink({ count }: BellLinkProps) {
+function BellLink({ count, href }: BellLinkProps) {
   const label = count > 0 ? `Notifications: ${dueFollowUpsLabel(count)}` : "Notifications";
 
   return (
     <Link
-      href="/follow-ups"
+      href={href}
       aria-label={label}
       className="relative flex h-11 w-11 items-center justify-center rounded-xl text-icon transition-colors duration-150 hover:bg-hover"
     >
@@ -37,13 +41,16 @@ function BellLink({ count }: BellLinkProps) {
 }
 
 async function BellWithCount() {
-  const count = await getDueFollowUpCount();
-  return <BellLink count={count ?? 0} />;
+  const counts = await getDueFollowUpCounts();
+  if (counts === null) {
+    return <BellLink count={0} href="/follow-ups" />;
+  }
+  return <BellLink count={counts.dueToday + counts.overdue} href={dueFollowUpsHref(counts)} />;
 }
 
 export default function NotificationBell() {
   return (
-    <Suspense fallback={<BellLink count={0} />}>
+    <Suspense fallback={<BellLink count={0} href="/follow-ups" />}>
       <BellWithCount />
     </Suspense>
   );

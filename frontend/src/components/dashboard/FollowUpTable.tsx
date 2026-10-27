@@ -6,17 +6,21 @@
 // Clicking a customer opens the customer side panel (?customer=12) and
 // keeps the current filter (?fu, ?fq). The open customer's rows are
 // highlighted, and their link is marked with aria-current for screen readers.
+// The last column has two small icons: a check to mark an open follow-up
+// done in one click, and a pencil to edit it. Both come back to this exact
+// dashboard view (returnTo).
 import Link from "next/link";
-import { EllipsisVertical, TriangleAlert } from "lucide-react";
 import LetterAvatar from "@/components/LetterAvatar";
 import PriorityBadge from "@/components/PriorityBadge";
 import StatusBadge from "@/components/StatusBadge";
+import EditFollowUpIconLink from "@/components/followUps/EditFollowUpIconLink";
+import FollowUpDueDate from "@/components/followUps/FollowUpDueDate";
+import FollowUpStatusButton from "@/components/followUps/FollowUpStatusButton";
 import type { FollowUp } from "@/lib/api/types";
 import { customerPanelHref } from "@/lib/dashboard/customerPanelView";
 import type { FollowUpChip } from "@/lib/dashboard/followUpView";
-import { formatDueDate } from "@/lib/format/dates";
+import { followUpEditHref } from "@/lib/followUps/followUpHrefs";
 import { firstLine } from "@/lib/format/firstLine";
-import { followUpDueState } from "@/lib/format/followUpDue";
 import { displayWebsite } from "@/lib/format/safeWebsiteUrl";
 
 type FollowUpTableProps = {
@@ -28,6 +32,8 @@ type FollowUpTableProps = {
   search: string;
   /** The customer whose panel is open (highlighted), or null. */
   selectedCustomerId: number | null;
+  /** The current dashboard URL, so Edit and Mark done come back here. */
+  returnTo: string;
 };
 
 const headerCellClasses = "px-3 pb-3 text-left text-xs font-medium text-muted";
@@ -38,6 +44,7 @@ export default function FollowUpTable({
   chip,
   search,
   selectedCustomerId,
+  returnTo,
 }: FollowUpTableProps) {
   return (
     <div className="-mx-3 overflow-x-auto">
@@ -62,6 +69,7 @@ export default function FollowUpTable({
               today={today}
               customerHref={customerPanelHref(followUp.customer.id, chip, search)}
               isSelected={followUp.customer.id === selectedCustomerId}
+              returnTo={returnTo}
             />
           ))}
         </tbody>
@@ -77,18 +85,15 @@ type FollowUpRowProps = {
   customerHref: string;
   /** True when this customer's panel is open. */
   isSelected: boolean;
+  /** The current dashboard URL. */
+  returnTo: string;
 };
 
 /** One table row. Kept in this file because only this table uses it. */
-function FollowUpRow({ followUp, today, customerHref, isSelected }: FollowUpRowProps) {
+function FollowUpRow({ followUp, today, customerHref, isSelected, returnTo }: FollowUpRowProps) {
   const { customer } = followUp;
   const website = displayWebsite(customer.website);
   const notePreview = firstLine(followUp.notes);
-
-  // Only OPEN follow-ups can be late; a DONE one with an old date is fine.
-  const dueState = followUpDueState(followUp.status, followUp.dueDate, today);
-  const late = dueState === "overdue";
-  const dueColour = dueState === "later" ? "text-ink" : "font-medium text-danger";
 
   return (
     <tr className={`border-t border-line ${isSelected ? "bg-selected" : ""}`}>
@@ -114,13 +119,8 @@ function FollowUpRow({ followUp, today, customerHref, isSelected }: FollowUpRowP
         <p className="truncate text-sm text-ink">{followUp.title}</p>
         {notePreview !== "" && <p className="truncate text-xs text-muted">{notePreview}</p>}
       </td>
-      <td className="px-3 py-3 whitespace-nowrap">
-        <span className={`inline-flex items-center gap-1 text-sm ${dueColour}`}>
-          {late && <TriangleAlert size={14} strokeWidth={2} aria-hidden="true" />}
-          <time dateTime={followUp.dueDate}>{formatDueDate(followUp.dueDate, today)}</time>
-          {/* Said in words too, so "late" never depends on the red colour alone. */}
-          {late && <span className="sr-only">(overdue)</span>}
-        </span>
+      <td className="px-3 py-3">
+        <FollowUpDueDate followUp={followUp} today={today} />
       </td>
       <td className="px-3 py-3">
         <StatusBadge status={followUp.status} />
@@ -128,19 +128,19 @@ function FollowUpRow({ followUp, today, customerHref, isSelected }: FollowUpRowP
       <td className="px-3 py-3">
         <PriorityBadge priority={followUp.priority} />
       </td>
-      <td className="px-3 py-3 text-right">
-        {/*
-          Row actions menu (edit, mark done, ...) comes in a later step.
-          Disabled until then so it does not look like it works.
-        */}
-        <button
-          type="button"
-          disabled
-          aria-label={`More actions for ${followUp.title} (coming soon)`}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-icon disabled:opacity-50"
-        >
-          <EllipsisVertical size={18} strokeWidth={1.75} aria-hidden="true" />
-        </button>
+      <td className="px-3 py-1">
+        <div className="flex items-center justify-end">
+          {followUp.status === "OPEN" && (
+            <FollowUpStatusButton
+              followUpId={followUp.id}
+              status={followUp.status}
+              title={followUp.title}
+              returnTo={returnTo}
+              look="icon"
+            />
+          )}
+          <EditFollowUpIconLink href={followUpEditHref(followUp.id, returnTo)} title={followUp.title} />
+        </div>
       </td>
     </tr>
   );

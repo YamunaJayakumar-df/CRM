@@ -8,6 +8,9 @@
 // which means "show no badge". The page itself still loads (or shows its
 // own error screen).
 //
+// getDueFollowUpCounts gives the two numbers separately (the bell uses them
+// to pick the Overdue or Due today view); getDueFollowUpCount adds them up.
+//
 // Why cache(): three places ask for this number in one request (sidebar,
 // phone nav, bell). cache() runs it once per request, so the backend is
 // asked once and an error is logged once. It reuses the dashboard summary
@@ -24,17 +27,26 @@ import { io } from "next/cache";
 import { unstable_rethrow } from "next/navigation";
 import { getDashboardSummaryOnce } from "./requestMemo";
 
-/** Due today + overdue, or null if the backend could not be asked. */
-export const getDueFollowUpCount = cache(async (): Promise<number | null> => {
+/** The two numbers that need attention now. */
+export type DueFollowUpCounts = { dueToday: number; overdue: number };
+
+/** Due today and overdue, separately, or null if the backend could not be asked. */
+export const getDueFollowUpCounts = cache(async (): Promise<DueFollowUpCounts | null> => {
   await io();
 
   try {
     const { followUps } = await getDashboardSummaryOnce();
-    return followUps.dueToday + followUps.overdue;
+    return { dueToday: followUps.dueToday, overdue: followUps.overdue };
   } catch (error) {
     // Lets Next.js's own internal signals pass through untouched.
     unstable_rethrow(error);
     console.error("Could not load the due follow-up count for the navigation.", error);
     return null;
   }
+});
+
+/** Due today + overdue, or null if the backend could not be asked. */
+export const getDueFollowUpCount = cache(async (): Promise<number | null> => {
+  const counts = await getDueFollowUpCounts();
+  return counts === null ? null : counts.dueToday + counts.overdue;
 });

@@ -93,7 +93,12 @@ export default async function CustomerPanelContent({
     );
   } else if (tab === "follow-ups") {
     tabContent = (
-      <CustomerFollowUpsTab customerId={customer.id} followUps={allFollowUps} today={today} />
+      <CustomerFollowUpsTab
+        customerId={customer.id}
+        followUps={allFollowUps}
+        today={today}
+        returnTo={panelHref}
+      />
     );
   } else if (tab === "notes") {
     tabContent = <CustomerNotesTab notes={customer.notes} />;
