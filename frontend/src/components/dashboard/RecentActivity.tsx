@@ -1,21 +1,14 @@
 // RecentActivity: the "Recent Activity" card on the dashboard.
 // The card frame (title, icon, "View all") shows at once; the list needs
 // the backend, so it is in RecentActivityList inside <Suspense>.
-// `searchParams` is passed down unopened (like UpcomingFollowUps does), so
-// the list can keep the current filter in its customer links.
 import { Suspense } from "react";
 import { Activity } from "lucide-react";
 import Card from "@/components/Card";
-import type { DashboardSearchParams } from "@/lib/dashboard/followUpView";
 import ViewAllLink from "@/components/ViewAllLink";
 import ListSkeleton from "./ListSkeleton";
 import RecentActivityList, { RECENT_ACTIVITY_ROWS } from "./RecentActivityList";
 
-type RecentActivityProps = {
-  searchParams: Promise<DashboardSearchParams>;
-};
-
-export default function RecentActivity({ searchParams }: RecentActivityProps) {
+export default function RecentActivity() {
   return (
     <Card
       title="Recent Activity"
@@ -23,7 +16,7 @@ export default function RecentActivity({ searchParams }: RecentActivityProps) {
       action={<ViewAllLink href="/interactions" />}
     >
       <Suspense fallback={<ListSkeleton label="Loading recent activity…" rows={RECENT_ACTIVITY_ROWS} />}>
-        <RecentActivityList searchParams={searchParams} />
+        <RecentActivityList />
       </Suspense>
     </Card>
   );

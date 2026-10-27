@@ -34,6 +34,7 @@ import {
   type CustomerFormState,
   type CustomerFormValues,
 } from "@/lib/customers/customerForm";
+import { customerPageHref } from "@/lib/customers/customerHrefs";
 import { readCustomerId } from "@/lib/dashboard/customerPanelView";
 import { splitFieldErrors } from "@/lib/forms/fieldErrors";
 import { safeReturnPath } from "@/lib/forms/safeReturnPath";
@@ -52,7 +53,7 @@ function failedState(
   return { values, fieldErrors, formErrors: hasAnyMessage ? formErrors : [error] };
 }
 
-/** Create a customer, then open them in the side panel on the Customers page. */
+/** Create a customer, then open their page. */
 export async function createCustomer(
   _previousState: CustomerFormState,
   formData: FormData,
@@ -68,7 +69,7 @@ export async function createCustomer(
   }
 
   revalidatePath("/", "layout");
-  redirect(`/customers?customer=${result.data.id}`);
+  redirect(customerPageHref(result.data.id));
 }
 
 /** Save changes to a customer, then go back where the user came from. */
@@ -100,5 +101,5 @@ export async function updateCustomer(
 
   const returnTo = safeReturnPath(formData.get("returnTo"));
   revalidatePath("/", "layout");
-  redirect(returnTo ?? `/customers?customer=${customerId}`);
+  redirect(returnTo ?? customerPageHref(customerId));
 }

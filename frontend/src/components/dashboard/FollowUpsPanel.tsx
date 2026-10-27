@@ -57,9 +57,6 @@ export default async function FollowUpsPanel({ searchParams }: FollowUpsPanelPro
       <FollowUpTable
         followUps={followUps}
         today={summary.today}
-        chip={chip}
-        search={search}
-        selectedCustomerId={selectedCustomerId}
         returnTo={returnTo}
       />
     );

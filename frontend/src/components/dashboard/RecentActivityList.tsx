@@ -5,19 +5,13 @@
 // About reading the clock: `new Date()` is read AFTER the backend call.
 // That await already makes this component run per request (never
 // prebuilt), so "2 hours ago" is always measured from the real "now".
-// Each title links to the customer's side panel (?customer=12), keeping
-// the current follow-up filter (?fu, ?fq) read from the URL.
+// Each title links to that customer's own page (/customers/12).
 // If the backend fails, the error goes to app/error.tsx ("Try again").
 import Link from "next/link";
 import { MessagesSquare } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { listInteractions } from "@/lib/api/queries";
-import { customerPanelHref } from "@/lib/dashboard/customerPanelView";
-import {
-  readFollowUpChip,
-  readFollowUpSearch,
-  type DashboardSearchParams,
-} from "@/lib/dashboard/followUpView";
+import { customerPageHref } from "@/lib/customers/customerHrefs";
 import { activityTitle } from "@/lib/format/activityTitle";
 import { formatRelativeTime } from "@/lib/format/dates";
 import { firstLine } from "@/lib/format/firstLine";
@@ -26,17 +20,8 @@ import ActivityIcon from "./ActivityIcon";
 /** How many interactions the card shows. */
 export const RECENT_ACTIVITY_ROWS = 4;
 
-type RecentActivityListProps = {
-  searchParams: Promise<DashboardSearchParams>;
-};
-
-export default async function RecentActivityList({ searchParams }: RecentActivityListProps) {
-  const [params, interactions] = await Promise.all([
-    searchParams,
-    listInteractions({ limit: RECENT_ACTIVITY_ROWS }),
-  ]);
-  const chip = readFollowUpChip(params.fu);
-  const search = readFollowUpSearch(params.fq);
+export default async function RecentActivityList() {
+  const interactions = await listInteractions({ limit: RECENT_ACTIVITY_ROWS });
   const now = new Date();
 
   if (interactions.length === 0) {
@@ -58,8 +43,7 @@ export default async function RecentActivityList({ searchParams }: RecentActivit
             <ActivityIcon type={interaction.type} />
             <div className="min-w-0 flex-1">
               <Link
-                href={customerPanelHref(interaction.customer.id, chip, search)}
-                scroll={false}
+                href={customerPageHref(interaction.customer.id)}
                 className="block truncate rounded text-sm font-medium text-ink hover:underline"
               >
                 {activityTitle(interaction.type, interaction.customer.companyName)}

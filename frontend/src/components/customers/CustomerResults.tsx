@@ -12,11 +12,7 @@ import { SearchX, Users } from "lucide-react";
 import Card from "@/components/Card";
 import EmptyState from "@/components/EmptyState";
 import { listCustomers } from "@/lib/api/queries";
-import {
-  customersListHref,
-  customersPanelPlace,
-  NEW_CUSTOMER_HREF,
-} from "@/lib/customers/customerHrefs";
+import { customersListHref, NEW_CUSTOMER_HREF } from "@/lib/customers/customerHrefs";
 import CustomerTable from "./CustomerTable";
 
 /** The most customers the backend sends in one list (MAX_CUSTOMERS_PER_LIST). */
@@ -65,11 +61,7 @@ export default async function CustomerResults({ search }: CustomerResultsProps) 
 
   return (
     <Card>
-      <CustomerTable
-        customers={customers}
-        panelPlace={customersPanelPlace(search)}
-        returnTo={customersListHref(search)}
-      />
+      <CustomerTable customers={customers} returnTo={customersListHref(search)} />
       {customers.length >= BACKEND_LIST_LIMIT && (
         <p className="mt-4 text-xs text-muted">
           Showing the first {BACKEND_LIST_LIMIT}. Search to narrow the list.

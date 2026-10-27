@@ -3,7 +3,7 @@
 //
 // On narrow screens the table keeps its width and scrolls sideways INSIDE
 // the card (overflow-x-auto), so the page itself never scrolls sideways.
-// - The customer name opens that customer's side panel on the dashboard.
+// - The customer name opens that customer's own page (/customers/12).
 // - "Mark done" / "Reopen" switches the status in one click and comes back
 //   to this exact view (returnTo); "Edit" opens the full form.
 import Link from "next/link";
@@ -12,7 +12,7 @@ import LetterAvatar from "@/components/LetterAvatar";
 import PriorityBadge from "@/components/PriorityBadge";
 import StatusBadge from "@/components/StatusBadge";
 import type { FollowUp } from "@/lib/api/types";
-import { customerPanelHref } from "@/lib/dashboard/customerPanelView";
+import { customerPageHref } from "@/lib/customers/customerHrefs";
 import { followUpEditHref } from "@/lib/followUps/followUpHrefs";
 import { firstLine } from "@/lib/format/firstLine";
 import FollowUpDueDate from "./FollowUpDueDate";
@@ -52,7 +52,7 @@ export default function FollowUpsTable({ followUps, today, returnTo }: FollowUps
               <tr key={followUp.id} className="border-t border-line">
                 <td className="max-w-56 px-3 py-3">
                   <Link
-                    href={customerPanelHref(followUp.customer.id, "all", "")}
+                    href={customerPageHref(followUp.customer.id)}
                     className="group flex min-w-0 items-center gap-2 rounded-lg"
                   >
                     <LetterAvatar name={followUp.customer.companyName} size="sm" />

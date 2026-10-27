@@ -8,7 +8,7 @@
 // Two links, side by side (links may not sit inside each other):
 // - The main one is the title. Its invisible ::after layer stretches over
 //   the whole card ("stretched link"), so clicking anywhere on the card
-//   still opens that customer's side panel on the dashboard (/?customer=12).
+//   still opens that customer's own page (/customers/12).
 //   With the keyboard, its focus ring shows around the title.
 // - A small pencil in the top-right corner opens the Edit page. It sits
 //   above the stretched layer (z-10), so it gets its own clicks and focus.
@@ -16,7 +16,7 @@ import Link from "next/link";
 import { CalendarDays, Clock } from "lucide-react";
 import LetterAvatar from "@/components/LetterAvatar";
 import type { Interaction } from "@/lib/api/types";
-import { customerPanelHref } from "@/lib/dashboard/customerPanelView";
+import { customerPageHref } from "@/lib/customers/customerHrefs";
 import { formatRelativeTime, formatTime } from "@/lib/format/dates";
 import { firstLine } from "@/lib/format/firstLine";
 import { interactionTypeLabel } from "@/lib/format/labels";
@@ -40,7 +40,7 @@ export default function InteractionCard({ interaction, now, returnTo }: Interact
     <article className="relative rounded-xl border border-line bg-card p-4 shadow-soft transition-colors duration-150 hover:bg-hover">
       <p className="line-clamp-2 pr-8 text-sm font-medium text-ink">
         <Link
-          href={customerPanelHref(customer.id, "all", "")}
+          href={customerPageHref(customer.id)}
           className="rounded-sm after:absolute after:inset-0 after:rounded-xl"
         >
           {title}

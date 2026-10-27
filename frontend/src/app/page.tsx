@@ -52,7 +52,7 @@ export default function DashboardPage({ searchParams }: PageProps<"/">) {
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <RecentActivity searchParams={searchParams} />
+          <RecentActivity />
           <FollowUpStatusCard />
         </div>
       </div>
