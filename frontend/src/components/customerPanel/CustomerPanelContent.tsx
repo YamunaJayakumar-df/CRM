@@ -1,59 +1,59 @@
-// CustomerPanelContent: loads one customer and shows their panel: top
-// buttons, name and status, quick contact actions, tabs, and the chosen tab.
+// CustomerPanelContent: loads one customer and shows the customer card.
+//
+// The card has two kinds of view, chosen by ?tab= in the URL:
+//   - no tab ("overview")  -> CustomerSummary: name, contact details,
+//                             section links and quick actions (short)
+//   - interactions / follow-ups / notes -> CustomerSectionView: "← back to
+//                             summary" and that section's full list
 //
 // Async Server Component, rendered inside <Suspense> by CustomerPanel.
-// All backend requests start AT THE SAME TIME (Promise.all). Each tab only
-// asks for what it shows: e.g. the Notes tab loads no interactions.
-// The open follow-ups are always loaded, because the "Follow-ups (n)" tab
-// label needs their count.
+// All backend requests start AT THE SAME TIME (Promise.all). Each view only
+// asks for what it shows: the summary needs just the LATEST interaction
+// (for "Last contact ..."), the Notes section loads no lists at all.
+// The open follow-ups are always loaded, because the summary's
+// "Follow-ups: 3 open" needs their count.
 // getCustomer returns null for an unknown id -> "Customer not found".
-// Other backend failures go to app/error.tsx ("Try again"), like the rest
-// of the dashboard.
+// Other backend failures go to app/error.tsx ("Try again").
 import { listFollowUps, listInteractions, getCustomer } from "@/lib/api/queries";
 import type { FollowUp, Interaction } from "@/lib/api/types";
-import { customerEditHref } from "@/lib/customers/customerHrefs";
 import { customerPanelLink, type PanelPlace } from "@/lib/customerPanel/panelPlace";
+import { followUpsHint, interactionsHint, notesHint } from "@/lib/customerPanel/sectionHints";
 import type { CustomerTab } from "@/lib/dashboard/customerPanelView";
 import { todayInKolkata } from "@/lib/format/dates";
-import CustomerActions from "./CustomerActions";
 import CustomerFollowUpsTab from "./CustomerFollowUpsTab";
-import CustomerIdentity from "./CustomerIdentity";
 import CustomerInteractionsTab from "./CustomerInteractionsTab";
 import CustomerNotesTab from "./CustomerNotesTab";
 import CustomerNotFound from "./CustomerNotFound";
-import CustomerOverviewTab from "./CustomerOverviewTab";
-import CustomerTabs from "./CustomerTabs";
-import PanelTopBar from "./PanelTopBar";
+import CustomerSectionView from "./CustomerSectionView";
+import CustomerSummary from "./CustomerSummary";
 
-/** How many interactions / follow-ups the Overview tab shows. */
-const OVERVIEW_INTERACTIONS = 4;
-const OVERVIEW_FOLLOW_UPS = 3;
-/** How many rows the Interactions and Follow-ups tabs show. */
-const TAB_ROWS = 20;
+/** How many rows the Interactions and Follow-ups sections show. */
+const SECTION_ROWS = 20;
 
 type CustomerPanelContentProps = {
   customerId: number;
   tab: CustomerTab;
-  /** The page the panel is on, and the filters its links keep. */
+  /** The page the card is on, and the filters its links keep. */
   place: PanelPlace;
+  /** This page without the card (the ✕ button). */
   backHref: string;
 };
 
-/** Interactions for the tabs that show them; no request for the other tabs. */
+/** The interactions each view needs: 1 (summary), 20 (Interactions section) or none. */
 function loadInteractions(customerId: number, tab: CustomerTab): Promise<Interaction[]> {
   if (tab === "overview") {
-    return listInteractions({ customerId, limit: OVERVIEW_INTERACTIONS });
+    return listInteractions({ customerId, limit: 1 });
   }
   if (tab === "interactions") {
-    return listInteractions({ customerId, limit: TAB_ROWS });
+    return listInteractions({ customerId, limit: SECTION_ROWS });
   }
   return Promise.resolve([]);
 }
 
-/** Open AND done follow-ups, only for the Follow-ups tab. */
+/** Open AND done follow-ups, only for the Follow-ups section. */
 function loadAllFollowUps(customerId: number, tab: CustomerTab): Promise<FollowUp[]> {
   if (tab === "follow-ups") {
-    return listFollowUps({ customerId, limit: TAB_ROWS });
+    return listFollowUps({ customerId, limit: SECTION_ROWS });
   }
   return Promise.resolve([]);
 }
@@ -66,8 +66,8 @@ export default async function CustomerPanelContent({
 }: CustomerPanelContentProps) {
   const [customer, openFollowUps, interactions, allFollowUps] = await Promise.all([
     getCustomer(customerId),
-    // Up to 20 so the tab count is right for normal customers ("20+" beyond that).
-    listFollowUps({ customerId, status: "OPEN", limit: TAB_ROWS }),
+    // Up to 20 so the count is right for normal customers ("20+" beyond that).
+    listFollowUps({ customerId, status: "OPEN", limit: SECTION_ROWS }),
     loadInteractions(customerId, tab),
     loadAllFollowUps(customerId, tab),
   ]);
@@ -76,59 +76,66 @@ export default async function CustomerPanelContent({
     return <CustomerNotFound backHref={backHref} />;
   }
 
-  // Read after the backend calls, so it is always the real "today" (India).
-  const today = todayInKolkata(new Date());
-  // This exact view (same page, filters and tab): the Edit and Log links come back here.
-  const panelHref = customerPanelLink(place, customer.id, tab);
+  // This exact view (same page, filters and tab): the forms come back here.
+  const viewHref = customerPanelLink(place, customer.id, tab);
 
-  let tabContent: React.ReactNode;
-  if (tab === "interactions") {
-    tabContent = (
-      <CustomerInteractionsTab
-        customerId={customer.id}
-        interactions={interactions}
-        returnTo={panelHref}
-      />
-    );
-  } else if (tab === "follow-ups") {
-    tabContent = (
-      <CustomerFollowUpsTab
-        customerId={customer.id}
-        followUps={allFollowUps}
-        today={today}
-        returnTo={panelHref}
-      />
-    );
-  } else if (tab === "notes") {
-    tabContent = <CustomerNotesTab notes={customer.notes} />;
-  } else {
-    tabContent = (
-      <CustomerOverviewTab
+  if (tab === "overview") {
+    const latest = interactions.at(0);
+    return (
+      <CustomerSummary
         customer={customer}
-        interactions={interactions}
-        openFollowUps={openFollowUps.slice(0, OVERVIEW_FOLLOW_UPS)}
-        today={today}
-        returnTo={panelHref}
+        place={place}
+        closeHref={backHref}
+        returnTo={viewHref}
+        sections={[
+          {
+            tab: "interactions",
+            label: "Interactions",
+            hint: interactionsHint(latest === undefined ? null : latest.occurredAt),
+          },
+          {
+            tab: "follow-ups",
+            label: "Follow-ups",
+            hint: followUpsHint(openFollowUps.length, SECTION_ROWS),
+          },
+          { tab: "notes", label: "Notes", hint: notesHint(customer.notes) },
+        ]}
       />
     );
   }
 
-  return (
-    <div>
-      <PanelTopBar
-        backHref={backHref}
-        editHref={customerEditHref(customer.id, panelHref)}
-      />
-      <CustomerIdentity customer={customer} />
-      <CustomerActions customer={customer} returnTo={panelHref} />
-      <CustomerTabs
+  // Read after the backend calls, so it is always the real "today" (India).
+  const today = todayInKolkata(new Date());
+
+  let section: React.ReactNode;
+  if (tab === "interactions") {
+    section = (
+      <CustomerInteractionsTab
         customerId={customer.id}
-        active={tab}
-        place={place}
-        openFollowUpCount={openFollowUps.length}
-        countLimit={TAB_ROWS}
+        interactions={interactions}
+        returnTo={viewHref}
       />
-      <div className="mt-6">{tabContent}</div>
-    </div>
+    );
+  } else if (tab === "follow-ups") {
+    section = (
+      <CustomerFollowUpsTab
+        customerId={customer.id}
+        followUps={allFollowUps}
+        today={today}
+        returnTo={viewHref}
+      />
+    );
+  } else {
+    section = <CustomerNotesTab notes={customer.notes} />;
+  }
+
+  return (
+    <CustomerSectionView
+      companyName={customer.companyName}
+      summaryHref={customerPanelLink(place, customer.id)}
+      closeHref={backHref}
+    >
+      {section}
+    </CustomerSectionView>
   );
 }

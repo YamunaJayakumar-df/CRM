@@ -1,5 +1,5 @@
-// CustomerPanel: the customer details panel. It appears when the URL has
-// ?customer=12 (see lib/dashboard/customerPanelView.ts).
+// CustomerPanel: the customer card (details panel). It appears when the URL
+// has ?customer=12 (see lib/dashboard/customerPanelView.ts).
 //
 // Used on several pages. Each page passes `readPlace`, which says which page
 // this is and which of its filters to keep (see lib/customerPanel/panelPlace.ts),
@@ -39,9 +39,9 @@ type CustomerPanelProps = {
 };
 
 const frameClasses = [
-  "min-w-0 rounded-xl border border-line bg-card p-6 shadow-soft",
-  // Wide screens: fixed-width right column that stays in view and scrolls on its own.
-  "xl:sticky xl:top-6 xl:order-last xl:max-h-[calc(100vh-3rem)] xl:w-105 xl:shrink-0 xl:self-start xl:overflow-y-auto",
+  "min-w-0 rounded-xl border border-line bg-card p-5 shadow-soft",
+  // Wide screens: a narrow (360px) right column that stays in view and scrolls on its own.
+  "xl:sticky xl:top-6 xl:order-last xl:max-h-[calc(100vh-3rem)] xl:w-90 xl:shrink-0 xl:self-start xl:overflow-y-auto",
 ].join(" ");
 
 export default async function CustomerPanel({ searchParams, readPlace }: CustomerPanelProps) {
