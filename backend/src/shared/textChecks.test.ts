@@ -4,6 +4,7 @@ import { describe, it, expect } from "vitest";
 import {
   hasControlCharacters,
   hasControlCharactersInMultilineText,
+  normalizeLineBreaks,
 } from "./textChecks.js";
 
 describe("hasControlCharacters (single-line text)", () => {
@@ -37,5 +38,19 @@ describe("hasControlCharactersInMultilineText (notes)", () => {
   // Protects that NUL is still rejected in notes.
   it("returns true for a NUL character", () => {
     expect(hasControlCharactersInMultilineText("Note\u0000")).toBe(true);
+  });
+});
+
+describe("normalizeLineBreaks", () => {
+  // Protects that browser "\r\n" line breaks are stored as plain "\n".
+  it("turns \\r\\n and lone \\r into \\n", () => {
+    expect(normalizeLineBreaks("Line 1\r\nLine 2\rLine 3\nLine 4")).toBe(
+      "Line 1\nLine 2\nLine 3\nLine 4",
+    );
+  });
+
+  // Protects that text without line breaks is unchanged.
+  it("leaves single-line text unchanged", () => {
+    expect(normalizeLineBreaks("Acme Corp")).toBe("Acme Corp");
   });
 });

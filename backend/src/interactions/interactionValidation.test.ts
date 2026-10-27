@@ -67,7 +67,11 @@ describe("validateCreateInteraction: valid bodies", () => {
 
     const result = validateCreateInteraction({ ...validBody, summary });
 
-    expect(result).toEqual({ ok: true, data: { ...validBody, summary } });
+    // "\r\n" from browsers is stored as "\n".
+    expect(result).toEqual({
+      ok: true,
+      data: { ...validBody, summary: "Line 1\nLine 2\n\tindented" },
+    });
   });
 
   // Protects that every allowed type is accepted.
@@ -344,5 +348,14 @@ describe("validateUpdateInteraction", () => {
         errors: ["Request body must be a JSON object"],
       });
     }
+  });
+});
+
+describe("summary line breaks", () => {
+  // Protects that the title (first line) never ends in a hidden "\r".
+  it("stores browser \\r\\n line breaks as \\n", () => {
+    const result = validateUpdateInteraction({ summary: "Kickoff\r\nNext steps" });
+
+    expect(result).toEqual({ ok: true, data: { summary: "Kickoff\nNext steps" } });
   });
 });

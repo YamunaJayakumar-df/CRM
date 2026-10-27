@@ -7,6 +7,7 @@
 import {
   hasControlCharacters,
   hasControlCharactersInMultilineText,
+  normalizeLineBreaks,
 } from "../shared/textChecks.js";
 
 // The only fields a client may send. Anything else (id, createdAt, ...) is rejected.
@@ -237,7 +238,8 @@ function readOptionalText(
     return undefined;
   }
 
-  const text = raw.trim();
+  // Notes may be multi-line: store browser "\r\n" line breaks as "\n".
+  const text = field === "notes" ? normalizeLineBreaks(raw).trim() : raw.trim();
   if (text === "") {
     return null;
   }

@@ -10,6 +10,7 @@ import { isPlainDate, plainDateToDate } from "../shared/plainDate.js";
 import {
   hasControlCharacters,
   hasControlCharactersInMultilineText,
+  normalizeLineBreaks,
 } from "../shared/textChecks.js";
 
 // Fields a client may send when creating. Anything else (id, createdAt, ...) is rejected.
@@ -299,7 +300,7 @@ function readNotes(raw: unknown, errors: string[]): string | null | undefined {
     return undefined;
   }
 
-  const notes = raw.trim();
+  const notes = normalizeLineBreaks(raw).trim();
   if (notes === "") {
     return null;
   }

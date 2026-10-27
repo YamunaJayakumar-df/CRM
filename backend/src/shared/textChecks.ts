@@ -22,3 +22,13 @@ export function hasControlCharacters(text: string): boolean {
 export function hasControlCharactersInMultilineText(text: string): boolean {
   return CONTROL_CHARACTER_EXCEPT_LINE_BREAKS.test(text);
 }
+
+/**
+ * Turns Windows ("\r\n") and old Mac ("\r") line breaks into "\n".
+ * Why: browsers send line breaks from multi-line boxes as "\r\n", so without
+ * this the first line of a summary (used as its title) ends in a hidden "\r".
+ * Used for multi-line fields only (notes, summaries).
+ */
+export function normalizeLineBreaks(text: string): string {
+  return text.replace(/\r\n?/g, "\n");
+}

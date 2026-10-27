@@ -85,7 +85,11 @@ describe("validateCreateFollowUp: valid bodies", () => {
 
     const result = validateCreateFollowUp({ ...validBody, notes });
 
-    expect(result).toEqual({ ok: true, data: { ...validData, notes } });
+    // "\r\n" from browsers is stored as "\n".
+    expect(result).toEqual({
+      ok: true,
+      data: { ...validData, notes: "Line 1\nLine 2\n\tindented" },
+    });
   });
 });
 

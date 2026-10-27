@@ -7,7 +7,10 @@
 // (so "does this customer exist?" is checked in interactionRoutes.ts).
 import { startsWithRealCalendarDate } from "../shared/dateChecks.js";
 import { isValidId } from "../shared/parseId.js";
-import { hasControlCharactersInMultilineText } from "../shared/textChecks.js";
+import {
+  hasControlCharactersInMultilineText,
+  normalizeLineBreaks,
+} from "../shared/textChecks.js";
 
 // Fields a client may send when creating. Anything else (id, createdAt, ...) is rejected.
 const ALLOWED_CREATE_FIELDS = [
@@ -204,7 +207,7 @@ function readSummary(raw: unknown, errors: string[]): string | undefined {
     return undefined;
   }
 
-  const summary = raw.trim();
+  const summary = normalizeLineBreaks(raw).trim();
   if (summary === "") {
     errors.push("summary cannot be empty");
     return undefined;
