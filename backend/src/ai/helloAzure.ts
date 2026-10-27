@@ -1,0 +1,76 @@
+// Lesson 1: say hello to our Azure OpenAI models.
+// Run it from the backend folder with:  npm run ai:hello
+//
+// It sends one short message to EACH of our two deployments (routing and
+// reasoning), prints each reply and how many tokens it used, and nothing
+// else: it reads and writes no CRM data. Costs a fraction of a cent.
+import "../env.js"; // must stay the first import: loads backend/.env
+import {
+  APIConnectionError,
+  APIError,
+  AuthenticationError,
+  NotFoundError,
+  type AzureOpenAI,
+} from "openai";
+import { readAzureConfig, type AzureConfig } from "./azureConfig.js";
+import { createAzureClient } from "./azureClient.js";
+
+const HELLO_MESSAGE =  "Explain what a CRM is in one simple sentence.";
+
+/** Read the settings, or print what is missing and stop. */
+function loadConfigOrExit(): AzureConfig {
+  try {
+    return readAzureConfig();
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+}
+
+/** Explain a failed request in plain words (never prints the key). */
+function explainError(error: unknown): string {
+  if (error instanceof AuthenticationError) {
+    return "The key was refused. Check AZURE_OPENAI_API_KEY in backend/.env.";
+  }
+  if (error instanceof NotFoundError) {
+    return "Not found. Check the deployment names and AZURE_OPENAI_API_VERSION in backend/.env.";
+  }
+  if (error instanceof APIConnectionError) {
+    return "Could not reach Azure. Check AZURE_OPENAI_ENDPOINT and your internet connection.";
+  }
+  if (error instanceof APIError) {
+    return `Azure answered with an error (status ${error.status}): ${error.message}`;
+  }
+  return String(error);
+}
+
+/** Send the hello message to one deployment and print the reply. True if it worked. */
+async function sayHello(client: AzureOpenAI, label: string, deployment: string): Promise<boolean> {
+  try {
+    const response = await client.chat.completions.create({
+      // On Azure, "model" is the DEPLOYMENT name our team chose.
+      model: deployment,
+      messages: [{ role: "user", content: HELLO_MESSAGE }],
+    });
+    const reply = response.choices[0]?.message?.content ?? "(empty reply)";
+    console.log(`\n${label} (${deployment}, model: ${response.model})`);
+    console.log(`  Reply:  ${reply}`);
+    if (response.usage) {
+      console.log(
+        `  Tokens: ${response.usage.prompt_tokens} in, ${response.usage.completion_tokens} out`,
+      );
+    }
+    return true;
+  } catch (error) {
+    console.error(`\n${label} (${deployment}) failed: ${explainError(error)}`);
+    return false;
+  }
+}
+
+const config = loadConfigOrExit();
+const client = createAzureClient(config);
+
+console.log(`Asking our Azure OpenAI models: "${HELLO_MESSAGE}"`);
+const routingOk = await sayHello(client, "ROUTING model", config.routingDeployment);
+const reasoningOk = await sayHello(client, "REASONING model", config.reasoningDeployment);
+process.exitCode = routingOk && reasoningOk ? 0 : 1;
