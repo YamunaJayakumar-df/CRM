@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 /*
-  Design tokens for Nexora CRM (dark theme: near-black surfaces with a
-  soft lavender accent).
+  Design tokens for Nexora CRM (light theme: soft lavender-grey page,
+  white cards and a violet/lavender accent).
   Every colour, font and shadow is defined ONCE here. Tailwind turns each
   token into utility classes, e.g. --color-card -> `bg-card`, `border-card`.
   Components use the token names, never raw hex values, so changing a
@@ -10,64 +10,64 @@
   ("primary", "danger"), not how it looks, so a new theme only edits values.
 */
 @theme {
-  /* Surfaces (darkest to lightest) */
-  --color-page: #0b0b10; /* page background, near black */
-  --color-sidebar: #0f0f15; /* sidebar, a touch lifted from the page */
-  --color-card: #15151d; /* cards and inputs */
-  --color-hover: #1d1d27; /* hover background */
-  --color-selected: #22212e; /* active nav item */
-  --color-line: #272733; /* soft 1px borders */
+  /* Surfaces */
+  --color-page: #f7f6fb; /* page background, very light lavender-grey */
+  --color-sidebar: #f1eff8; /* sidebar, a touch deeper than the page */
+  --color-card: #ffffff; /* cards and inputs */
+  --color-hover: #ebe8f5; /* hover background */
+  --color-selected: #e5e0f7; /* active nav item */
+  --color-line: #e6e3ef; /* soft 1px borders */
 
   /* Text */
-  --color-ink: #f1f0f7; /* main text, soft white */
-  --color-muted: #9b99ab; /* secondary text (AA on page, sidebar and card) */
+  --color-ink: #1f1b2e; /* main text, deep violet-black */
+  --color-muted: #635e74; /* secondary text (AA on page, sidebar, card and hover) */
 
   /* Brand */
-  --color-primary: #b9a6f7; /* primary button (lavender) */
-  --color-primary-hover: #cbbcfa; /* primary button on hover */
-  --color-on-primary: #16121f; /* text/icons placed ON the primary colour */
-  --color-primary-soft: #241f3a; /* tinted circle/background behind primary icons */
-  --color-accent: #c4b5fd; /* links ("View all"), focus ring */
-  --color-icon: #c9c7d6; /* line icons */
+  --color-primary: #6a4fd6; /* primary button (violet) */
+  --color-primary-hover: #5a3fc4; /* primary button on hover */
+  --color-on-primary: #ffffff; /* text/icons placed ON the primary colour */
+  --color-primary-soft: #efebfd; /* tinted circle/background behind primary icons */
+  --color-accent: #5b3fc4; /* links ("View all"), focus ring */
+  --color-icon: #3f3a52; /* line icons */
 
   /* Status pills (follow-up status, customer status) */
-  --color-open-bg: #262046;
-  --color-open-ink: #c4b5fd;
-  --color-done-bg: #10291d;
-  --color-done-ink: #4ade80;
-  --color-danger: #f87171; /* "Today" / overdue dates */
+  --color-open-bg: #ece7fd;
+  --color-open-ink: #5b3fc4;
+  --color-done-bg: #ddf3e6;
+  --color-done-ink: #1e7a46;
+  --color-danger: #c8312f; /* "Today" / overdue dates */
 
   /* Priority pills */
-  --color-high-bg: #3a1619;
-  --color-high-ink: #fca5a5;
-  --color-medium-bg: #35270f;
-  --color-medium-ink: #fbbf24;
-  --color-low-bg: #10291d;
-  --color-low-ink: #4ade80;
+  --color-high-bg: #fde3e3;
+  --color-high-ink: #b02a28;
+  --color-medium-bg: #fdf0d9;
+  --color-medium-ink: #9a5606;
+  --color-low-bg: #ddf3e6;
+  --color-low-ink: #1e7a46;
 
   /* Charts (sparklines and the status donut) */
-  --color-chart-primary: #a78bfa; /* glowing lavender line */
-  --color-chart-red: #f87171;
-  --color-chart-green: #4ade80;
+  --color-chart-primary: #7c5cf0; /* lavender line */
+  --color-chart-red: #e5484d;
+  --color-chart-green: #22a06b;
 
-  /* Letter avatar tints (dark background + bright matching text) */
-  --color-avatar-blue: #17223f;
-  --color-avatar-blue-ink: #93b4ff;
-  --color-avatar-teal: #0f2a2a;
-  --color-avatar-teal-ink: #5eead4;
-  --color-avatar-violet: #261f3f;
-  --color-avatar-violet-ink: #c4b5fd;
-  --color-avatar-rose: #351823;
-  --color-avatar-rose-ink: #fda4af;
-  --color-avatar-green: #10291d;
-  --color-avatar-green-ink: #4ade80;
+  /* Letter avatar tints (light background + matching darker text) */
+  --color-avatar-blue: #e3ecfd;
+  --color-avatar-blue-ink: #2f55d4;
+  --color-avatar-teal: #ddf4f1;
+  --color-avatar-teal-ink: #127a70;
+  --color-avatar-violet: #ece7fd;
+  --color-avatar-violet-ink: #5b3fc4;
+  --color-avatar-rose: #fde6ea;
+  --color-avatar-rose-ink: #b4324a;
+  --color-avatar-green: #ddf3e6;
+  --color-avatar-green-ink: #1e7a46;
 
   /* Type: one extra size for the large page greeting (26px) */
   --text-title: 1.625rem;
   --text-title--line-height: 2.125rem;
 
-  /* Elevation: on dark surfaces a faint inner highlight reads better than a shadow */
-  --shadow-soft: inset 0 1px 0 rgb(255 255 255 / 0.03), 0 8px 24px rgb(0 0 0 / 0.35);
+  /* Elevation: one very soft shadow for cards */
+  --shadow-soft: 0 1px 2px rgb(31 27 46 / 0.04), 0 2px 8px rgb(31 27 46 / 0.05);
 }
 
 /*
@@ -78,9 +78,9 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Tell the browser the page is dark, so scrollbars and form controls match. */
+/* Tell the browser the page is light, so scrollbars and form controls match. */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* One visible focus ring for every interactive element (keyboard users). */
