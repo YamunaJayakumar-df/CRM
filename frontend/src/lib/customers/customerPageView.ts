@@ -4,7 +4,7 @@
 // like /customers/12, a ?customerId= filter, or a hidden form field), so
 // odd values are rejected BEFORE they reach the backend.
 // readCustomerTab reads ?tab= on a customer's page (/customers/12?tab=notes).
-import { firstValue, type SearchParamValue } from "./followUpView";
+import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 
 /** The tabs of a customer's page ("files" is not built yet). */
 export type CustomerTab = "overview" | "interactions" | "follow-ups" | "notes";

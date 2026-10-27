@@ -10,7 +10,7 @@
 // - the shape of the form's state (typed values + errors)
 import type { Interaction, InteractionType } from "@/lib/api/types";
 import { isPlainDate, kolkataDateAndTime } from "@/lib/format/dates";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 
 /** Every input of the form, by its `name`, in the order they are shown. */
 export const INTERACTION_FORM_FIELDS = ["customerId", "type", "summary", "date", "time"] as const;

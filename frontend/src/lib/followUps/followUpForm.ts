@@ -8,7 +8,7 @@
 // - building the JSON body for POST /follow-ups and PATCH /follow-ups/:id
 // - the shape of the form's state (typed values + errors)
 import type { FollowUp, FollowUpPriority, FollowUpStatus } from "@/lib/api/types";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { isPlainDate } from "@/lib/format/dates";
 
 /** Every input of the form, by its `name`, in the order they are shown. */

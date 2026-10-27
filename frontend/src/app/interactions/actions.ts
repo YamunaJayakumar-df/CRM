@@ -16,7 +16,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { backendSend } from "@/lib/api/backendSend";
 import type { Interaction } from "@/lib/api/types";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { splitFieldErrors } from "@/lib/forms/fieldErrors";
 import { safeReturnPath } from "@/lib/forms/safeReturnPath";
 import {

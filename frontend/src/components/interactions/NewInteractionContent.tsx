@@ -14,7 +14,7 @@ import EmptyState from "@/components/EmptyState";
 import PrimaryButtonLink from "@/components/PrimaryButtonLink";
 import { listCustomers } from "@/lib/api/queries";
 import { NEW_CUSTOMER_HREF } from "@/lib/customers/customerHrefs";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 import { safeReturnPath } from "@/lib/forms/safeReturnPath";
 import {

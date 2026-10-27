@@ -1,9 +1,9 @@
-// CustomerNotesTab: the "Notes" tab of the customer panel: the customer's
+// CustomerNotesTab: the "Notes" tab of a customer's page: the customer's
 // notes in full. `whitespace-pre-wrap` keeps the line breaks and spacing
 // exactly as they were typed. Shows an EmptyState when there are no notes.
 import { StickyNote } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
-import PanelSection from "./PanelSection";
+import TabSection from "./TabSection";
 
 type CustomerNotesTabProps = {
   notes: string | null;
@@ -13,7 +13,7 @@ export default function CustomerNotesTab({ notes }: CustomerNotesTabProps) {
   const hasNotes = (notes ?? "").trim() !== "";
 
   return (
-    <PanelSection title="Notes">
+    <TabSection title="Notes">
       {hasNotes ? (
         <p className="text-sm whitespace-pre-wrap break-words text-ink">{notes}</p>
       ) : (
@@ -23,6 +23,6 @@ export default function CustomerNotesTab({ notes }: CustomerNotesTabProps) {
           hint="Notes about this customer will appear here."
         />
       )}
-    </PanelSection>
+    </TabSection>
   );
 }

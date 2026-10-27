@@ -12,7 +12,7 @@
 import type { InteractionDateRange, InteractionFilters } from "@/lib/api/queries";
 import { buildQueryString } from "@/lib/api/buildQueryString";
 import type { InteractionType } from "@/lib/api/types";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 
 /** The two ways to show the list. */

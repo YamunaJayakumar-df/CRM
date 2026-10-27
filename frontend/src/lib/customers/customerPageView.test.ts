@@ -1,6 +1,6 @@
 // Tests for reading a customer id and tab from the URL.
 import { describe, expect, it } from "vitest";
-import { readCustomerId, readCustomerTab } from "./customerPanelView";
+import { readCustomerId, readCustomerTab } from "./customerPageView";
 
 describe("readCustomerId", () => {
   it("reads a positive whole number", () => {

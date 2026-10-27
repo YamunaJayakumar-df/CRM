@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import CustomerStatusBadge from "@/components/CustomerStatusBadge";
 import LetterAvatar from "@/components/LetterAvatar";
-import CustomerQuickActions from "@/components/customerPanel/CustomerQuickActions";
+import CustomerQuickActions from "@/components/customerPage/CustomerQuickActions";
 import type { Customer } from "@/lib/api/types";
 
 type CustomerPageHeaderProps = {

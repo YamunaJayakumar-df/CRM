@@ -11,13 +11,13 @@
 // - Other backend failures go to app/error.tsx ("Try again").
 import { notFound } from "next/navigation";
 import Card from "@/components/Card";
-import CustomerFollowUpsTab from "@/components/customerPanel/CustomerFollowUpsTab";
-import CustomerInteractionsTab from "@/components/customerPanel/CustomerInteractionsTab";
-import CustomerNotesTab from "@/components/customerPanel/CustomerNotesTab";
+import CustomerFollowUpsTab from "@/components/customerPage/CustomerFollowUpsTab";
+import CustomerInteractionsTab from "@/components/customerPage/CustomerInteractionsTab";
+import CustomerNotesTab from "@/components/customerPage/CustomerNotesTab";
 import { getCustomer, listFollowUps, listInteractions } from "@/lib/api/queries";
 import type { FollowUp, Interaction } from "@/lib/api/types";
 import { customerPageHref } from "@/lib/customers/customerHrefs";
-import { readCustomerId, readCustomerTab, type CustomerTab } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId, readCustomerTab, type CustomerTab } from "@/lib/customers/customerPageView";
 import type { SearchParamValue } from "@/lib/dashboard/followUpView";
 import { todayInKolkata } from "@/lib/format/dates";
 import CustomerOverview from "./CustomerOverview";

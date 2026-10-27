@@ -8,7 +8,7 @@
 // If the tabs are wider than the screen (phones), only this row scrolls sideways.
 import Link from "next/link";
 import { customerPageHref } from "@/lib/customers/customerHrefs";
-import type { CustomerTab } from "@/lib/dashboard/customerPanelView";
+import type { CustomerTab } from "@/lib/customers/customerPageView";
 
 type CustomerPageTabsProps = {
   customerId: number;

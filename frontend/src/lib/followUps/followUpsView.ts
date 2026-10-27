@@ -10,7 +10,7 @@
 // plain view is just "/follow-ups". Anything unknown falls back to the default.
 import type { FollowUpFilters } from "@/lib/api/queries";
 import { buildQueryString } from "@/lib/api/buildQueryString";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 
 /** The view chips. */

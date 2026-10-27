@@ -4,7 +4,7 @@
 // with a search. Building those URLs here (with URLSearchParams doing the
 // encoding) keeps them consistent and avoids gluing user text into URLs.
 import { buildQueryString } from "@/lib/api/buildQueryString";
-import type { CustomerTab } from "@/lib/dashboard/customerPanelView";
+import type { CustomerTab } from "@/lib/customers/customerPageView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 
 /** Longest search text we pass on to the backend (its limit is 100 too). */

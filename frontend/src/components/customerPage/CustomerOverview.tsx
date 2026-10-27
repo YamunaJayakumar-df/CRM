@@ -5,10 +5,10 @@
 // On narrow screens the two columns stack (details first).
 import Card from "@/components/Card";
 import ViewAllLink from "@/components/ViewAllLink";
-import CustomerContactLines from "@/components/customerPanel/CustomerContactLines";
-import CustomerFollowUpList from "@/components/customerPanel/CustomerFollowUpList";
-import InteractionTimeline from "@/components/customerPanel/InteractionTimeline";
-import LogInteractionLink from "@/components/customerPanel/LogInteractionLink";
+import CustomerContactLines from "@/components/customerPage/CustomerContactLines";
+import CustomerFollowUpList from "@/components/customerPage/CustomerFollowUpList";
+import InteractionTimeline from "@/components/customerPage/InteractionTimeline";
+import LogInteractionLink from "@/components/customerPage/LogInteractionLink";
 import type { Customer, FollowUp, Interaction } from "@/lib/api/types";
 import { customerPageHref } from "@/lib/customers/customerHrefs";
 

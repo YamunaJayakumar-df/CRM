@@ -11,7 +11,7 @@ import Card from "@/components/Card";
 import PageHeader from "@/components/PageHeader";
 import { getCustomer } from "@/lib/api/queries";
 import { customerToFormValues } from "@/lib/customers/customerForm";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 import { safeReturnPath } from "@/lib/forms/safeReturnPath";
 import CustomerForm from "./CustomerForm";

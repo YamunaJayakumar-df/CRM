@@ -35,7 +35,7 @@ import {
   type CustomerFormValues,
 } from "@/lib/customers/customerForm";
 import { customerPageHref } from "@/lib/customers/customerHrefs";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { splitFieldErrors } from "@/lib/forms/fieldErrors";
 import { safeReturnPath } from "@/lib/forms/safeReturnPath";
 

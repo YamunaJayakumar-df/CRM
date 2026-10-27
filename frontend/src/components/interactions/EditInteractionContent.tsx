@@ -11,7 +11,7 @@ import { updateInteraction } from "@/app/interactions/actions";
 import Card from "@/components/Card";
 import PageHeader from "@/components/PageHeader";
 import { getInteraction } from "@/lib/api/queries";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 import { safeReturnPath } from "@/lib/forms/safeReturnPath";
 import { interactionToFormValues } from "@/lib/interactions/interactionForm";

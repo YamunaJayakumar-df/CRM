@@ -1,6 +1,6 @@
-// LogInteractionLink: the small "+ Log" link in the header of the panel's
-// interaction lists. Opens the Log form for this customer (any type, e.g.
-// after a phone call made with the Call tile) and comes back to returnTo.
+// LogInteractionLink: the small "+ Log" link in the header of the customer
+// page's interaction lists. Opens the Log form for this customer (any type,
+// e.g. after a phone call) and comes back to returnTo.
 // Styled like ViewAllLink, its neighbour in the header.
 import Link from "next/link";
 import { Plus } from "lucide-react";
@@ -8,7 +8,7 @@ import { newInteractionHref } from "@/lib/interactions/interactionHrefs";
 
 type LogInteractionLinkProps = {
   customerId: number;
-  /** The current dashboard URL (panel open). */
+  /** This customer page (same tab). */
   returnTo: string;
 };
 

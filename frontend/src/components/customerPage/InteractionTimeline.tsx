@@ -16,7 +16,7 @@ import InteractionTypeBadge from "./InteractionTypeBadge";
 
 type InteractionTimelineProps = {
   interactions: Interaction[];
-  /** The current dashboard URL (panel open), so Edit comes back here. */
+  /** This customer page (same tab), so Edit comes back here. */
   returnTo: string;
 };
 

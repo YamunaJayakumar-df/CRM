@@ -11,7 +11,7 @@ import { updateFollowUp } from "@/app/follow-ups/actions";
 import Card from "@/components/Card";
 import PageHeader from "@/components/PageHeader";
 import { getFollowUp } from "@/lib/api/queries";
-import { readCustomerId } from "@/lib/dashboard/customerPanelView";
+import { readCustomerId } from "@/lib/customers/customerPageView";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 import { followUpToFormValues } from "@/lib/followUps/followUpForm";
 import { safeReturnPath } from "@/lib/forms/safeReturnPath";

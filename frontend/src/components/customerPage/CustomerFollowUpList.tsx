@@ -5,8 +5,8 @@
 // are red; overdue ones also get a warning icon and the word "overdue" for
 // screen readers, so it never depends on colour alone.
 // Each item ends with a small pencil link to edit it (comes back to
-// returnTo). Mark done lives in the Edit form and on the Follow-ups page:
-// the panel is too narrow for a second icon without squeezing the title.
+// returnTo). Mark done lives in the Edit form and on the Follow-ups page,
+// so each row keeps a single action.
 // Shows an EmptyState with `emptyMessage` when the list is empty.
 import { CalendarCheck, CalendarClock, TriangleAlert } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
@@ -24,7 +24,7 @@ type CustomerFollowUpListProps = {
   today: string;
   emptyMessage: string;
   showStatus?: boolean;
-  /** The current dashboard URL (panel open), so Edit comes back here. */
+  /** This customer page (same tab), so Edit comes back here. */
   returnTo: string;
 };
 
