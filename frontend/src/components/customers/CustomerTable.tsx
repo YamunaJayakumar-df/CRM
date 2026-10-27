@@ -1,7 +1,8 @@
 // CustomerTable: the customer list as a table
 // (Company | Contact | Email | Phone | Industry | Status | Edit).
 //
-// - The company name opens that customer's side panel on the dashboard.
+// - The company name opens that customer's side panel on THIS page
+//   (/customers?customer=12), keeping the search.
 // - "Edit" opens the Edit page; `returnTo` brings the user back to this
 //   list (with the same search) after saving or cancelling.
 // - On narrow screens the table keeps its width and scrolls sideways INSIDE
@@ -10,13 +11,15 @@ import Link from "next/link";
 import CustomerStatusBadge from "@/components/CustomerStatusBadge";
 import LetterAvatar from "@/components/LetterAvatar";
 import type { Customer } from "@/lib/api/types";
+import { customerPanelLink, type PanelPlace } from "@/lib/customerPanel/panelPlace";
 import { customerEditHref } from "@/lib/customers/customerHrefs";
-import { customerPanelHref } from "@/lib/dashboard/customerPanelView";
 import { displayWebsite } from "@/lib/format/safeWebsiteUrl";
 import EmptyCell from "./EmptyCell";
 
 type CustomerTableProps = {
   customers: Customer[];
+  /** This page and its search, so the company links open the panel here. */
+  panelPlace: PanelPlace;
   /** The list URL to come back to after editing, e.g. "/customers?q=acme". */
   returnTo: string;
 };
@@ -33,7 +36,7 @@ function TextCell({ value }: { value: string | null }) {
   );
 }
 
-export default function CustomerTable({ customers, returnTo }: CustomerTableProps) {
+export default function CustomerTable({ customers, panelPlace, returnTo }: CustomerTableProps) {
   return (
     <div className="-mx-3 overflow-x-auto">
       <table className="w-full min-w-200 border-collapse">
@@ -57,7 +60,9 @@ export default function CustomerTable({ customers, returnTo }: CustomerTableProp
               <tr key={customer.id} className="border-t border-line">
                 <td className="max-w-72 px-3 py-3">
                   <Link
-                    href={customerPanelHref(customer.id, "all", "")}
+                    href={customerPanelLink(panelPlace, customer.id)}
+                    // Keep the list where it is; the panel opens beside it.
+                    scroll={false}
                     className="group flex min-w-0 items-center gap-3 rounded-lg"
                   >
                     <LetterAvatar name={customer.companyName} />

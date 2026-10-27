@@ -52,7 +52,7 @@ function failedState(
   return { values, fieldErrors, formErrors: hasAnyMessage ? formErrors : [error] };
 }
 
-/** Create a customer, then open them in the dashboard's side panel. */
+/** Create a customer, then open them in the side panel on the Customers page. */
 export async function createCustomer(
   _previousState: CustomerFormState,
   formData: FormData,
@@ -68,7 +68,7 @@ export async function createCustomer(
   }
 
   revalidatePath("/", "layout");
-  redirect(`/?customer=${result.data.id}`);
+  redirect(`/customers?customer=${result.data.id}`);
 }
 
 /** Save changes to a customer, then go back where the user came from. */
@@ -100,5 +100,5 @@ export async function updateCustomer(
 
   const returnTo = safeReturnPath(formData.get("returnTo"));
   revalidatePath("/", "layout");
-  redirect(returnTo ?? `/?customer=${customerId}`);
+  redirect(returnTo ?? `/customers?customer=${customerId}`);
 }

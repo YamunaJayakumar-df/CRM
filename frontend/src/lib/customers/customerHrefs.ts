@@ -4,6 +4,7 @@
 // with a search. Building those URLs here (with URLSearchParams doing the
 // encoding) keeps them consistent and avoids gluing user text into URLs.
 import { buildQueryString } from "@/lib/api/buildQueryString";
+import type { PageSearchParams, PanelPlace } from "@/lib/customerPanel/panelPlace";
 import { firstValue, type SearchParamValue } from "@/lib/dashboard/followUpView";
 
 /** Longest search text we pass on to the backend (its limit is 100 too). */
@@ -23,6 +24,20 @@ export function readCustomerSearch(value: SearchParamValue): string {
  */
 export function customersListHref(search: string): string {
   return `/customers${buildQueryString({ q: search })}`;
+}
+
+/**
+ * The Customers page as a place for the customer side panel: path
+ * "/customers", keeping the search. Opening a customer from the list then
+ * stays on this page, e.g. /customers?q=acme&customer=12.
+ */
+export function customersPanelPlace(search: string): PanelPlace {
+  return { path: "/customers", keep: { q: search } };
+}
+
+/** The Customers page's panel place, read from its URL search params. */
+export function readCustomersPanelPlace(params: PageSearchParams): PanelPlace {
+  return customersPanelPlace(readCustomerSearch(params.q));
 }
 
 /** The "Add customer" page. */
