@@ -1,15 +1,15 @@
-// CustomersBody: everything under the Customers page title.
+// CustomersBody: the customer table under the search box.
 //
 // 1. Reads the search text from the URL (?q=). `searchParams` is a Promise
 //    in Next 16; we await it HERE, inside the page's <Suspense>.
-// 2. Shows the search box straight away (it needs only the URL).
-// 3. Loads the table inside its own <Suspense>. Its `key` is the search
+// 2. Loads the table inside its own <Suspense>. Its `key` is the search
 //    text, so a new search shows the loading skeleton instead of leaving
 //    the old results on screen.
+// (The search box itself is CustomersSearch, placed above the table and the
+// customer card so both start at the same height.)
 import { Suspense } from "react";
 import { readCustomerSearch, type CustomersSearchParams } from "@/lib/customers/customerHrefs";
 import CustomerResults from "./CustomerResults";
-import CustomerSearchForm from "./CustomerSearchForm";
 import CustomerTableSkeleton from "./CustomerTableSkeleton";
 
 type CustomersBodyProps = {
@@ -20,13 +20,8 @@ export default async function CustomersBody({ searchParams }: CustomersBodyProps
   const search = readCustomerSearch((await searchParams).q);
 
   return (
-    <>
-      <div className="mb-6">
-        <CustomerSearchForm search={search} />
-      </div>
-      <Suspense key={search} fallback={<CustomerTableSkeleton />}>
-        <CustomerResults search={search} />
-      </Suspense>
-    </>
+    <Suspense key={search} fallback={<CustomerTableSkeleton />}>
+      <CustomerResults search={search} />
+    </Suspense>
   );
 }
