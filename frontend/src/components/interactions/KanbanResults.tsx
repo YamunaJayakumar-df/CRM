@@ -11,6 +11,7 @@
 import { listInteractions } from "@/lib/api/queries";
 import {
   interactionFiltersFor,
+  interactionsHref,
   type InteractionsState,
 } from "@/lib/interactions/interactionsView";
 import { KANBAN_COLUMN_LIMIT, KANBAN_COLUMNS } from "@/lib/interactions/kanbanColumns";
@@ -29,6 +30,8 @@ export default async function KanbanResults({ state }: KanbanResultsProps) {
     ),
   );
   const now = new Date();
+  // The page as it is now, so Log / Edit links come back to this exact view.
+  const returnTo = interactionsHref(state);
 
   const isEmpty = columnLists.every((list) => list.length === 0);
   if (isEmpty) {
@@ -44,6 +47,7 @@ export default async function KanbanResults({ state }: KanbanResultsProps) {
           interactions={columnLists[index]}
           limit={KANBAN_COLUMN_LIMIT}
           now={now}
+          returnTo={returnTo}
         />
       ))}
     </KanbanBoardFrame>

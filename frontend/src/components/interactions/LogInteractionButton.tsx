@@ -1,22 +1,36 @@
-// LogInteractionButton: the page's main "+ Log Interaction" button.
-// The logging form comes in the next step, so for now it is disabled with
-// "Soon" as a tooltip and read out to screen readers, the same treatment as
-// the customer panel's disabled actions. The tooltip sits on a wrapper,
-// because browsers do not show tooltips on disabled buttons reliably.
-import { Plus } from "lucide-react";
+// LogInteractionButton: the Interactions page's main "+ Log Interaction"
+// button. It opens the Log form with ?returnTo= the page as it is now
+// (same view, range, search and customer), so saving or cancelling comes
+// straight back to the same view.
+//
+// Reading the URL means awaiting `searchParams`, so the page renders this
+// inside <Suspense>. Its fallback, LogInteractionButtonLink with the plain
+// "/interactions", looks identical, so nothing jumps while it loads.
+import PrimaryButtonLink from "@/components/PrimaryButtonLink";
+import { newInteractionHref } from "@/lib/interactions/interactionHrefs";
+import {
+  interactionsHref,
+  readInteractionsState,
+  type InteractionsSearchParams,
+} from "@/lib/interactions/interactionsView";
 
-export default function LogInteractionButton() {
+type LogInteractionButtonLinkProps = {
+  /** The Interactions page URL to come back to. */
+  returnTo: string;
+};
+
+/** The button itself, for a known return URL. */
+export function LogInteractionButtonLink({ returnTo }: LogInteractionButtonLinkProps) {
   return (
-    <span title="Soon" className="self-start sm:self-auto">
-      <button
-        type="button"
-        disabled
-        className="inline-flex h-11 cursor-not-allowed items-center gap-2 rounded-xl bg-primary px-4 text-base font-medium text-on-primary opacity-50"
-      >
-        <Plus size={18} strokeWidth={2} aria-hidden="true" />
-        Log Interaction
-        <span className="sr-only">(Soon)</span>
-      </button>
-    </span>
+    <PrimaryButtonLink href={newInteractionHref({ returnTo })}>Log Interaction</PrimaryButtonLink>
   );
+}
+
+type LogInteractionButtonProps = {
+  searchParams: Promise<InteractionsSearchParams>;
+};
+
+export default async function LogInteractionButton({ searchParams }: LogInteractionButtonProps) {
+  const state = readInteractionsState(await searchParams);
+  return <LogInteractionButtonLink returnTo={interactionsHref(state)} />;
 }

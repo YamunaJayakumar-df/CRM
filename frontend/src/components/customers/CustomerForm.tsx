@@ -13,10 +13,14 @@
 // noValidate: the browser's own pop-up checks are turned off so every
 // problem is shown the same way, by the backend's messages next to the fields.
 // `required` stays on Company name, so screen readers still announce it.
+//
+// ResetAfterSubmit (components/forms) wraps the form so that, after a save,
+// pressing browser Back shows an empty form instead of the old typing.
 "use client";
 
 import { useActionState } from "react";
 import FormActions from "@/components/forms/FormActions";
+import ResetAfterSubmit from "@/components/forms/ResetAfterSubmit";
 import FormErrorSummary, { type FormErrorItem } from "@/components/forms/FormErrorSummary";
 import Select from "@/components/forms/Select";
 import TextArea from "@/components/forms/TextArea";
@@ -67,7 +71,8 @@ function summaryItems(state: CustomerFormState): FormErrorItem[] {
   return items;
 }
 
-export default function CustomerForm({
+/** The form itself. Kept separate so ResetAfterSubmit can start it afresh. */
+function CustomerFormBody({
   mode,
   action,
   initialValues,
@@ -175,5 +180,13 @@ export default function CustomerForm({
         cancelHref={cancelHref}
       />
     </form>
+  );
+}
+
+export default function CustomerForm(props: CustomerFormProps) {
+  return (
+    <ResetAfterSubmit>
+      <CustomerFormBody {...props} />
+    </ResetAfterSubmit>
   );
 }

@@ -10,6 +10,8 @@ import {
   formatTime,
   greetingFor,
   isOverdue,
+  isPlainDate,
+  kolkataDateAndTime,
   todayInKolkata,
 } from "./dates";
 
@@ -185,5 +187,39 @@ describe("greetingFor", () => {
 
   it("throws for an invalid Date", () => {
     expect(() => greetingFor(new Date("x"))).toThrow("not a valid Date");
+  });
+});
+
+describe("isPlainDate", () => {
+  it("accepts real YYYY-MM-DD days", () => {
+    expect(isPlainDate("2026-10-26")).toBe(true);
+    expect(isPlainDate("2028-02-29")).toBe(true);
+  });
+
+  it("rejects other formats and days that do not exist", () => {
+    expect(isPlainDate("2026-02-31")).toBe(false);
+    expect(isPlainDate("26/10/2026")).toBe(false);
+    expect(isPlainDate("2026-10-26T10:00")).toBe(false);
+    expect(isPlainDate("")).toBe(false);
+  });
+});
+
+describe("kolkataDateAndTime", () => {
+  it("gives India's day and 24-hour time for the date and time inputs", () => {
+    expect(kolkataDateAndTime("2026-10-26T10:30:00.000Z")).toEqual({
+      date: "2026-10-26",
+      time: "16:00",
+    });
+  });
+
+  it("moves to the next day after India's midnight", () => {
+    expect(kolkataDateAndTime("2026-10-26T18:35:00Z")).toEqual({
+      date: "2026-10-27",
+      time: "00:05",
+    });
+  });
+
+  it("throws for text that is not a date-time", () => {
+    expect(() => kolkataDateAndTime("soon")).toThrow();
   });
 });

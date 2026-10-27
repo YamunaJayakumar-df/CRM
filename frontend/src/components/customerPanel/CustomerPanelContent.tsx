@@ -79,10 +79,18 @@ export default async function CustomerPanelContent({
 
   // Read after the backend calls, so it is always the real "today" (India).
   const today = todayInKolkata(new Date());
+  // This exact view (same filter and tab): the Edit and Log links come back here.
+  const panelHref = customerPanelHref(customer.id, chip, search, tab);
 
   let tabContent: React.ReactNode;
   if (tab === "interactions") {
-    tabContent = <CustomerInteractionsTab customerId={customer.id} interactions={interactions} />;
+    tabContent = (
+      <CustomerInteractionsTab
+        customerId={customer.id}
+        interactions={interactions}
+        returnTo={panelHref}
+      />
+    );
   } else if (tab === "follow-ups") {
     tabContent = (
       <CustomerFollowUpsTab customerId={customer.id} followUps={allFollowUps} today={today} />
@@ -96,6 +104,7 @@ export default async function CustomerPanelContent({
         interactions={interactions}
         openFollowUps={openFollowUps.slice(0, OVERVIEW_FOLLOW_UPS)}
         today={today}
+        returnTo={panelHref}
       />
     );
   }
@@ -104,11 +113,10 @@ export default async function CustomerPanelContent({
     <div>
       <PanelTopBar
         backHref={backHref}
-        // After editing, come back to exactly this view (same filter and tab).
-        editHref={customerEditHref(customer.id, customerPanelHref(customer.id, chip, search, tab))}
+        editHref={customerEditHref(customer.id, panelHref)}
       />
       <CustomerIdentity customer={customer} />
-      <CustomerActions customer={customer} />
+      <CustomerActions customer={customer} returnTo={panelHref} />
       <CustomerTabs
         customerId={customer.id}
         active={tab}

@@ -9,6 +9,7 @@ import Card from "@/components/Card";
 import { listInteractions } from "@/lib/api/queries";
 import {
   interactionFiltersFor,
+  interactionsHref,
   type InteractionsState,
 } from "@/lib/interactions/interactionsView";
 import { INTERACTIONS_TABLE_LIMIT, isListCapped } from "@/lib/interactions/kanbanColumns";
@@ -30,7 +31,7 @@ export default async function TableResults({ state }: TableResultsProps) {
 
   return (
     <Card>
-      <InteractionTable interactions={interactions} />
+      <InteractionTable interactions={interactions} returnTo={interactionsHref(state)} />
       {isListCapped(interactions.length, INTERACTIONS_TABLE_LIMIT) && (
         <p className="mt-4 text-xs text-muted">Showing latest {INTERACTIONS_TABLE_LIMIT}</p>
       )}

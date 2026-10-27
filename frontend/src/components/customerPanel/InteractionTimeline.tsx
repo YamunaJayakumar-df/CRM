@@ -1,21 +1,26 @@
 // InteractionTimeline: a customer's interactions, newest first, as a
 // timeline: a tinted icon per item joined by a thin vertical line, the
-// first line of the summary, the date and time (India), and a type pill.
+// first line of the summary, the date and time (India), a type pill, and
+// a small pencil link to edit the item (it comes back to returnTo).
 // Shows an EmptyState when there are none.
 import { MessagesSquare } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import ActivityIcon from "@/components/dashboard/ActivityIcon";
+import EditInteractionIconLink from "@/components/interactions/EditInteractionIconLink";
 import type { Interaction } from "@/lib/api/types";
 import { formatShortDate, formatTime } from "@/lib/format/dates";
 import { firstLine } from "@/lib/format/firstLine";
 import { interactionTypeLabel } from "@/lib/format/labels";
+import { interactionEditHref } from "@/lib/interactions/interactionHrefs";
 import InteractionTypeBadge from "./InteractionTypeBadge";
 
 type InteractionTimelineProps = {
   interactions: Interaction[];
+  /** The current dashboard URL (panel open), so Edit comes back here. */
+  returnTo: string;
 };
 
-export default function InteractionTimeline({ interactions }: InteractionTimelineProps) {
+export default function InteractionTimeline({ interactions, returnTo }: InteractionTimelineProps) {
   if (interactions.length === 0) {
     return (
       <EmptyState
@@ -52,6 +57,11 @@ export default function InteractionTimeline({ interactions }: InteractionTimelin
               </p>
             </div>
             <InteractionTypeBadge type={interaction.type} />
+            <EditInteractionIconLink
+              href={interactionEditHref(interaction.id, returnTo)}
+              title={title}
+              className="-my-2.5 -mr-3"
+            />
           </li>
         );
       })}

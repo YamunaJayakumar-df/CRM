@@ -137,6 +137,33 @@ export function todayInKolkata(now: Date): string {
 }
 
 /**
+ * True when `text` is exactly "YYYY-MM-DD" AND a real calendar day.
+ * Example: "2026-10-26" -> true; "2026-02-31" -> false; "26/10/2026" -> false.
+ */
+export function isPlainDate(text: string): boolean {
+  try {
+    parsePlainDate(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A moment as the India calendar day and clock time, in the formats of
+ * <input type="date"> ("YYYY-MM-DD") and <input type="time"> ("HH:mm", 24-hour).
+ * Example: "2026-10-26T10:30:00.000Z" -> { date: "2026-10-26", time: "16:00" }
+ * Throws an Error if `iso` is not a valid date-time.
+ */
+export function kolkataDateAndTime(iso: string): { date: string; time: string } {
+  const { year, month, day, hour, minute } = toKolkataParts(parseIsoDateTime(iso));
+  return {
+    date: `${year}-${twoDigits(month)}-${twoDigits(day)}`,
+    time: `${twoDigits(hour)}:${twoDigits(minute)}`,
+  };
+}
+
+/**
  * Label for a follow-up's due day compared with today (both "YYYY-MM-DD").
  * Returns "Today", "Tomorrow", "Yesterday", or a date like "Oct 28, 2026".
  * Throws an Error if either value is not a real "YYYY-MM-DD" date.

@@ -87,6 +87,26 @@ export function listFollowUps(filters: FollowUpFilters = {}): Promise<FollowUp[]
   return backendGet<FollowUp[]>(`/follow-ups${query}`);
 }
 
+/**
+ * One interaction by id (with its customer's summary).
+ * Returns null when `id` is not a positive whole number or no interaction
+ * has that id, so a page can simply call notFound(). Other failures throw.
+ */
+export async function getInteraction(id: number): Promise<Interaction | null> {
+  if (!Number.isInteger(id) || id <= 0) {
+    return null;
+  }
+
+  try {
+    return await backendGet<Interaction>(`/interactions/${id}`);
+  } catch (error) {
+    if (error instanceof BackendRequestError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 /** Interactions, newest first, narrowed by the given filters. */
 export function listInteractions(
   filters: InteractionFilters = {},

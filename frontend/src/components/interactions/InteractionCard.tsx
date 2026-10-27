@@ -4,8 +4,14 @@
 // small chip with the time. Under a thin divider: the customer (initials
 // avatar + name) and the date ("2 hours ago" today, "Yesterday", or
 // "Oct 20, 2026").
-// The whole card is one link to the dashboard with that customer's side
-// panel open (/?customer=12), the quickest way to see the full context.
+//
+// Two links, side by side (links may not sit inside each other):
+// - The main one is the title. Its invisible ::after layer stretches over
+//   the whole card ("stretched link"), so clicking anywhere on the card
+//   still opens that customer's side panel on the dashboard (/?customer=12).
+//   With the keyboard, its focus ring shows around the title.
+// - A small pencil in the top-right corner opens the Edit page. It sits
+//   above the stretched layer (z-10), so it gets its own clicks and focus.
 import Link from "next/link";
 import { CalendarDays, Clock } from "lucide-react";
 import LetterAvatar from "@/components/LetterAvatar";
@@ -14,24 +20,39 @@ import { customerPanelHref } from "@/lib/dashboard/customerPanelView";
 import { formatRelativeTime, formatTime } from "@/lib/format/dates";
 import { firstLine } from "@/lib/format/firstLine";
 import { interactionTypeLabel } from "@/lib/format/labels";
+import { interactionEditHref } from "@/lib/interactions/interactionHrefs";
+import EditInteractionIconLink from "./EditInteractionIconLink";
 
 type InteractionCardProps = {
   interaction: Interaction;
   /** The moment the page was rendered, for "2 hours ago". */
   now: Date;
+  /** The current page URL, so Edit comes back here. */
+  returnTo: string;
 };
 
-export default function InteractionCard({ interaction, now }: InteractionCardProps) {
+export default function InteractionCard({ interaction, now, returnTo }: InteractionCardProps) {
   const { customer } = interaction;
   // The summary's first line is the most useful title; the type is the fallback.
   const title = firstLine(interaction.summary) || interactionTypeLabel(interaction.type);
 
   return (
-    <Link
-      href={customerPanelHref(customer.id, "all", "")}
-      className="block rounded-xl border border-line bg-card p-4 shadow-soft transition-colors duration-150 hover:bg-hover"
-    >
-      <p className="line-clamp-2 text-sm font-medium text-ink">{title}</p>
+    <article className="relative rounded-xl border border-line bg-card p-4 shadow-soft transition-colors duration-150 hover:bg-hover">
+      <p className="line-clamp-2 pr-8 text-sm font-medium text-ink">
+        <Link
+          href={customerPanelHref(customer.id, "all", "")}
+          className="rounded-sm after:absolute after:inset-0 after:rounded-xl"
+        >
+          {title}
+          <span className="sr-only">, {customer.companyName}</span>
+        </Link>
+      </p>
+
+      <EditInteractionIconLink
+        href={interactionEditHref(interaction.id, returnTo)}
+        title={title}
+        className="absolute top-1 right-1 z-10"
+      />
 
       <div className="mt-3 flex flex-wrap gap-2">
         <span className="inline-flex items-center gap-1 rounded-full bg-selected px-2.5 py-0.5 text-xs font-medium text-muted">
@@ -52,6 +73,6 @@ export default function InteractionCard({ interaction, now }: InteractionCardPro
           {formatRelativeTime(interaction.occurredAt, now)}
         </time>
       </p>
-    </Link>
+    </article>
   );
 }
