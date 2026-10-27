@@ -11,7 +11,8 @@
 // of the dashboard.
 import { listFollowUps, listInteractions, getCustomer } from "@/lib/api/queries";
 import type { FollowUp, Interaction } from "@/lib/api/types";
-import type { CustomerTab } from "@/lib/dashboard/customerPanelView";
+import { customerEditHref } from "@/lib/customers/customerHrefs";
+import { customerPanelHref, type CustomerTab } from "@/lib/dashboard/customerPanelView";
 import type { FollowUpChip } from "@/lib/dashboard/followUpView";
 import { todayInKolkata } from "@/lib/format/dates";
 import CustomerActions from "./CustomerActions";
@@ -101,7 +102,11 @@ export default async function CustomerPanelContent({
 
   return (
     <div>
-      <PanelTopBar backHref={backHref} />
+      <PanelTopBar
+        backHref={backHref}
+        // After editing, come back to exactly this view (same filter and tab).
+        editHref={customerEditHref(customer.id, customerPanelHref(customer.id, chip, search, tab))}
+      />
       <CustomerIdentity customer={customer} />
       <CustomerActions customer={customer} />
       <CustomerTabs

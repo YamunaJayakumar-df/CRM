@@ -1,6 +1,7 @@
 // TopBar: the bar above every page with search, notifications and the
 // main "+ New" action. It lives in the root layout so every page gets it.
 import { Search } from "lucide-react";
+import { NEW_CUSTOMER_HREF } from "@/lib/customers/customerHrefs";
 import NotificationBell from "./NotificationBell";
 import PrimaryButtonLink from "./PrimaryButtonLink";
 
@@ -36,10 +37,10 @@ export default function TopBar() {
         <NotificationBell />
 
         {/*
-          "+ New" goes to the Customers page for now. A later step will turn
-          it into a small menu (new customer, interaction or follow-up).
+          "+ New" opens the Add customer form. A later step will turn it
+          into a small menu (new customer, interaction or follow-up).
         */}
-        <PrimaryButtonLink href="/customers">New</PrimaryButtonLink>
+        <PrimaryButtonLink href={NEW_CUSTOMER_HREF}>New</PrimaryButtonLink>
       </div>
     </header>
   );
