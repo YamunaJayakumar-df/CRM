@@ -98,3 +98,14 @@ model FollowUp {
   @@index([customerId])
   @@index([status, dueDate])
 }
+
+// One row per confirmed AI review ("ticket"), so the same Save can never be
+// applied twice (a double click or a retry gets "already saved" instead).
+model AiSave {
+  // The review's id from POST /ai/understand. Being the id makes it unique.
+  id        String   @id
+  createdAt DateTime @default(now())
+  // What was created (customer, interaction and follow-up ids), so a
+  // repeated Save gets the same answer.
+  result    Json
+}
