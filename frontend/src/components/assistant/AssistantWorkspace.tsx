@@ -16,9 +16,11 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { saveReviewAction, understandNoteAction, type ActionFailure } from "@/app/assistant/actions";
 import { buildSaveBody, reviewFromPlan, saveProblems, type ReviewCard, type ReviewState } from "@/lib/assistant/reviewState";
+import { appendSpokenText } from "@/lib/assistant/speech";
 import type { SaveResult } from "@/lib/assistant/types";
 import { customerPageHref } from "@/lib/customers/customerHrefs";
 import { textAreaClasses } from "@/components/forms/fieldClasses";
+import MicButton from "./MicButton";
 import ReviewCardView from "./ReviewCardView";
 
 // Same limits as the backend (backend/src/ai/noteValidation.ts).
@@ -224,11 +226,19 @@ export default function AssistantWorkspace() {
             {note.length} / {MAX_NOTE_LENGTH}
           </p>
         </div>
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <MicButton
+            disabled={isUnderstanding}
+            onText={(spoken) => setNote((current) => appendSpokenText(current, spoken, MAX_NOTE_LENGTH))}
+          />
           <button type="button" className={primaryButtonClasses} disabled={noteTooShort || isUnderstanding} onClick={understand}>
             {isUnderstanding ? "Reading your note…" : "Understand"}
           </button>
         </div>
+        <p className="mt-2 text-xs text-muted">
+          Voice is turned into text by your browser&apos;s speech service (Google in Chrome, Microsoft in Edge). The CRM does not
+          record audio.
+        </p>
       </section>
       {failure && <FailureBox failure={failure} />}
     </div>

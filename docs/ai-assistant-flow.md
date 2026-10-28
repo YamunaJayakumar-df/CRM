@@ -17,7 +17,7 @@ Status: ✅ done · 🔜 next · ⏳ later
  types / speaks a note
         │
         ▼
- ⏳ voice → text (Lesson 8)
+ ✅ voice → text (Lesson 8)
         │
         ▼
  POST /ai/understand ──►  ✅ check the note (Lesson 2: validateNote)
@@ -32,8 +32,8 @@ Status: ✅ done · 🔜 next · ⏳ later
                           ✅ rank every option, with reasons (Step 1)
                           ✅ decide: pre-select / choose / create / ask (Step 3)
                                  │
- review screen  ◄──────── ⏳ review: customer + interaction + follow-ups
- (🔜 Step 6)                 (nothing saved yet)
+ review screen  ◄──────── ✅ review: customer + interaction + follow-ups
+ (✅ Step 6)                 (nothing saved yet)
  user picks / edits
  user clicks Save
         │
@@ -118,14 +118,22 @@ The database search is passed in (`findOptions`), so this file has no database c
   Two Saves at the same moment: the database lets only one ticket in, and the other answers "already saved".
 - Tried for real: the first Save gave 201, the same Save again gave 200 "already saved", and exactly 1 customer was created.
 
-### 🔜 Step 6 (Lesson 7): review screen in the frontend
-- A "Tell the AI" box, then cards per customer: pick or confirm the customer, edit the interaction and
-  follow-ups, then **one Save** for everything (or Discard).
+### ✅ Step 6 (Lesson 7): review screen in the frontend
+- Page `/assistant` ("AI Assistant" in the sidebar, "Tell the AI what happened" on the dashboard).
+- Three stages: **write** the note → **review** one card per customer → **saved** (with links to the customer pages).
+- Each card: every customer option with its reasons, plus "Create a new customer"; the interaction
+  (a guessed type is flagged) and the follow-ups, all editable and removable; "Remove this customer".
+- **Save all** stays disabled, with the reasons listed, until every customer is chosen and every
+  follow-up has a title and date. The review keeps its `reviewId`, so saving is safe to repeat.
+- The browser never calls the backend: Server Actions in `frontend/src/app/assistant/actions.ts` do.
 
-### ⏳ Lesson 8: voice
-- The browser's built-in speech-to-text (Chrome/Edge) turns speech into the same note text.
-- Kept swappable, so Sarvam AI (better for Indian languages) can replace it later.
-- Audio is not stored.
+### ✅ Lesson 8: voice
+- The "Speak" button: the browser's built-in speech-to-text (Chrome/Edge, Indian English `en-IN`)
+  types into the same note box. Nothing goes to our AI until the user presses Understand.
+- ⚠️ Privacy: the browser's speech service (Google in Chrome, Microsoft in Edge) turns the audio
+  into text. The CRM never stores audio. **Confirm with the senior before real use.**
+- Kept swappable (`frontend/src/lib/assistant/speech.ts`, the `SpeechToText` "ears"), so Sarvam AI
+  (better for Indian languages) or Azure Speech can replace it later. Firefox gets a "please type" note.
 
 ---
 
