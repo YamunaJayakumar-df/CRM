@@ -16,7 +16,8 @@
     "db:seed": "tsx src/demoData/seedDemoData.ts",
     "ai:hello": "tsx src/ai/helloAzure.ts",
     "ai:prompt": "tsx src/ai/tryPrompt.ts",
-    "ai:understand": "tsx src/ai/tryUnderstand.ts"
+    "ai:understand": "tsx src/ai/tryUnderstand.ts",
+    "ai:find": "tsx src/ai/tryFindCustomer.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
