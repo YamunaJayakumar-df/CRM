@@ -4,6 +4,7 @@
 // fake requests to it with supertest, so no real network port is opened.
 // Only server.ts actually listens on a port.
 import express from "express";
+import { aiRouter } from "./ai/aiRoutes.js";
 import { customerRouter } from "./customers/customerRoutes.js";
 import { dashboardRouter } from "./dashboard/dashboardRoutes.js";
 import { followUpRouter } from "./followUps/followUpRoutes.js";
@@ -38,6 +39,7 @@ export function createApp() {
   app.use("/interactions", interactionRouter);
   app.use("/follow-ups", followUpRouter);
   app.use("/dashboard", dashboardRouter);
+  app.use("/ai", aiRouter);
 
   // Error handlers must come LAST so they catch errors from everything above.
   app.use(handleInvalidJson);

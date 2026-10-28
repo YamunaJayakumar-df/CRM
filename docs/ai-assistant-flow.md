@@ -21,7 +21,7 @@ Status: ✅ done · 🔜 next · ⏳ later
         │
         ▼
  POST /ai/understand ──►  ✅ check the note (Lesson 2: validateNote)
- (🔜 Step 4)                 bad note → error, nothing sent, costs nothing
+ (✅ Step 4)                 bad note → error, nothing sent, costs nothing
                                  │
                           ✅ instructions + note + form ─────────────►  reads the note,
                              (Lessons 2-3)              ◄─────────────  fills in the form (JSON)
@@ -99,11 +99,11 @@ interaction and follow-ups, and customers are never merged. All questions (the A
 `unclear` list plus ours) are collected into one list, so the user answers them on one screen.
 The database search is passed in (`findOptions`), so this file has no database code.
 
-### 🔜 Step 4: `POST /ai/understand`
+### ✅ Step 4: `POST /ai/understand`
 - Note → check → AI → for each customer: fetch, rank, decide → review JSON.
-- **Saves nothing.** Returns a review ID for Step 5.
+- **Saves nothing.** Returns `customers` (each with `understood` and `decision`) and one `questions` list. The review ID for safe saving comes with Step 5.
 
-### ⏳ Step 5: `POST /ai/save` (the only step that writes)
+### 🔜 Step 5: `POST /ai/save` (the only step that writes)
 - The backend **does not trust the screen**. It checks everything again:
   - the customer ID must exist (any existing customer is allowed, even one not offered);
   - a new customer goes through `validateCreateCustomer`;
