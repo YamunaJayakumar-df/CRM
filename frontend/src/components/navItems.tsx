@@ -7,6 +7,7 @@ import {
   ChartColumn,
   LayoutDashboard,
   MessagesSquare,
+  Sparkles,
   Users,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ export const navItems: NavItem[] = [
     label: "Follow-ups",
     icon: <CalendarCheck {...iconProps} />,
   },
+  { href: "/assistant", label: "AI Assistant", icon: <Sparkles {...iconProps} /> },
 ];
 
 // Pages planned for later. Shown greyed out with a "Soon" label.
