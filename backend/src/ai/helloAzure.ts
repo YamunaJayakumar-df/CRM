@@ -5,44 +5,11 @@
 // reasoning), prints each reply and how many tokens it used, and nothing
 // else: it reads and writes no CRM data. Costs a fraction of a cent.
 import "../env.js"; // must stay the first import: loads backend/.env
-import {
-  APIConnectionError,
-  APIError,
-  AuthenticationError,
-  NotFoundError,
-  type AzureOpenAI,
-} from "openai";
-import { readAzureConfig, type AzureConfig } from "./azureConfig.js";
+import type { AzureOpenAI } from "openai";
 import { createAzureClient } from "./azureClient.js";
+import { explainError, loadConfigOrExit } from "./scriptHelpers.js";
 
 const HELLO_MESSAGE =  "Explain what a CRM is in one simple sentence.";
-
-/** Read the settings, or print what is missing and stop. */
-function loadConfigOrExit(): AzureConfig {
-  try {
-    return readAzureConfig();
-  } catch (error) {
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exit(1);
-  }
-}
-
-/** Explain a failed request in plain words (never prints the key). */
-function explainError(error: unknown): string {
-  if (error instanceof AuthenticationError) {
-    return "The key was refused. Check AZURE_OPENAI_API_KEY in backend/.env.";
-  }
-  if (error instanceof NotFoundError) {
-    return "Not found. Check the deployment names and AZURE_OPENAI_API_VERSION in backend/.env.";
-  }
-  if (error instanceof APIConnectionError) {
-    return "Could not reach Azure. Check AZURE_OPENAI_ENDPOINT and your internet connection.";
-  }
-  if (error instanceof APIError) {
-    return `Azure answered with an error (status ${error.status}): ${error.message}`;
-  }
-  return String(error);
-}
 
 /** Send the hello message to one deployment and print the reply. True if it worked. */
 async function sayHello(client: AzureOpenAI, label: string, deployment: string): Promise<boolean> {
