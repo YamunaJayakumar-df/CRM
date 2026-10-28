@@ -21,16 +21,16 @@ Status: ✅ done · 🔜 next · ⏳ later
         │
         ▼
  POST /ai/understand ──►  ✅ check the note (Lesson 2: validateNote)
- (⏳ Step 4)                 bad note → error, nothing sent, costs nothing
+ (🔜 Step 4)                 bad note → error, nothing sent, costs nothing
                                  │
                           ✅ instructions + note + form ─────────────►  reads the note,
                              (Lessons 2-3)              ◄─────────────  fills in the form (JSON)
                           ✅ JSON answer: customers[], unclear[]
                                  │
                                  ▼  for EACH customer in the answer
-                          🔜 fetch candidates from the database (Step 2, read only)
+                          ✅ fetch candidates from the database (Step 2, read only)
                           ✅ rank every option, with reasons (Step 1)
-                          ⏳ decide: pre-select / choose / create / ask (Step 3)
+                          ✅ decide: pre-select / choose / create / ask (Step 3)
                                  │
  review screen  ◄──────── ⏳ review: customer + interaction + follow-ups
  (⏳ Step 6)                 (nothing saved yet)
@@ -77,27 +77,29 @@ customer and never saves. Our code does all of that, and the user confirms.
 - Pure logic, no database. Known limits: word pieces match ("sun" → Sunrise),
   typos are not found, and different scripts (Tamil vs English) don't match.
 
-### 🔜 Step 2: fetch candidates from the database
+### ✅ Step 2: fetch candidates from the database
 - `findCustomerCandidates.ts`: one read-only query. Customers whose company name or
   website contains any word, or whose contact name matches. At most 50, with `moreMatches` if there are more.
 - Reuses the safe escaping from the customer search (`shared/escapeSearchText.ts`).
 - Try: `npm run ai:find` against the demo data (no AI, no cost).
 
-### ⏳ Step 3: the decision layer (one per customer in the note)
-`decideCustomerStep` uses the owner's rules, with no confidence percentages:
+### ✅ Step 3: the decision layer (one per customer in the note)
+`customerDecision.ts` → `decideCustomer` uses the owner's rules, with no confidence percentages:
 
-| Situation | What the review shows |
-|---|---|
-| **Clear, unique**: exactly one `exactName`, no other `exactName`/`allWords`, `moreMatches` false | That customer **pre-selected**. The user can still change it. |
-| Several possible customers | All options with reasons. The user picks one or "create new". |
-| No match | "Create new customer: Nova Tech" |
-| Company not named / unclear | Only the question needed ("Which customer?") |
-| `moreMatches` true | The options, plus "more customers match, type a more exact name" |
+| Decision | Situation | What the review shows |
+|---|---|---|
+| `preselected` | **Clear, unique**: exactly one `exactName`, no other `exactName`/`allWords`, `moreMatches` false | That customer **pre-selected**. The user can still change it. |
+| `choose` | Several possible customers, or only partial matches | All options with reasons. The user picks one or "create new". |
+| `choose` (+ flag) | `moreMatches` true, even with an exact match | The options, plus "more customers match, type a more exact name" |
+| `createNew` | No match | "Create new customer: Nova Tech" |
+| `needInfo` | Company not named, or only filler words ("Pvt Ltd") | One question ("Which company is Ravi from?"), plus any contact matches |
 
-A note with several customers gets one decision **per customer**. Each customer
-keeps its own interaction and follow-ups, and customers are never merged.
+`planNote` makes one decision **per customer**. Each customer keeps its own
+interaction and follow-ups, and customers are never merged. All questions (the AI's
+`unclear` list plus ours) are collected into one list, so the user answers them on one screen.
+The database search is passed in (`findOptions`), so this file has no database code.
 
-### ⏳ Step 4: `POST /ai/understand`
+### 🔜 Step 4: `POST /ai/understand`
 - Note → check → AI → for each customer: fetch, rank, decide → review JSON.
 - **Saves nothing.** Returns a review ID for Step 5.
 
