@@ -21,7 +21,7 @@ describe("buildAssistantInstructions", () => {
 
   it("asks which customer instead of guessing one", () => {
     expect(instructions).toContain("Never guess the company");
-    expect(instructions).toContain('"Unclear: which customer?"');
+    expect(instructions).toContain('add the question "Which customer?" to unclear');
   });
 
   it("describes the three CRM record kinds", () => {

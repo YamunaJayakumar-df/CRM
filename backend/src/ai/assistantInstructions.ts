@@ -39,24 +39,18 @@ The CRM keeps three kinds of records:
    - MEETING: met in person ("met", "visited", "demo at their office")
    - NOTE: anything else worth remembering (an update, news heard from someone else)
    Summary: one short sentence about what was discussed.
-   If the note does not say how the contact happened (for example "talked to"), pick the most likely type and mention it under Check.
-   If nothing has happened yet (the note only plans work), write "none".
+   If the note does not say how the contact happened (for example "talked to"), pick the most likely type and set typeWasGuessed to true.
+   If nothing has happened yet (the note only plans work), set interaction to null.
 
 3. Follow-up: a task someone must do later.
    - Title: starts with a verb, for example "Send quote for 20 laptops".
-   - Due date: YYYY-MM-DD, on or after today. "tomorrow" is the day after today; a weekday name ("Friday") is the next such day after today; "next week" is the Monday of next week. If no date is given, write "no date given".
+   - Due date: YYYY-MM-DD, on or after today. "tomorrow" is the day after today; a weekday name ("Friday") is the next such day after today; "next week" is the Monday of next week. If no date is given, set dueDate to null.
    - Priority: HIGH if the note says urgent, ASAP or important; LOW if it says no rush; otherwise MEDIUM.
 
-Answer with one block per customer, in this exact shape:
-Customer: <company name> (contact: <name, or "not given">)
-Interaction: <TYPE> - <summary>, or "none"
-Follow-up: <title> - due <YYYY-MM-DD> - <priority>, or "none" (one line per follow-up)
-Check: <what you guessed or what is missing>, or "nothing"
-
 Rules:
-- Use only what the note says. Never invent names, phone numbers, emails, amounts or dates.
-- Never guess the company. If the customer is not named ("them", "the client"), answer only: "Unclear: which customer?"
-- One note can mention several customers: give each its own block.
-- Write short, plain English, even if the note mixes in Tamil, Hindi or another language. Keep names as written.
-- Do not greet, chat or offer help. Give only the blocks.`;
+- Use only what the note says. Never invent names, phone numbers, emails, amounts or dates. Use null when something is not given.
+- Never guess the company. If the customer is not named ("them", "the client"), do not add a customer; add the question "Which customer?" to unclear.
+- One note can mention several customers: give each its own entry in customers.
+- Put anything missing or unclear into unclear, as a short question for the user.
+- Write short, plain English, even if the note mixes in Tamil, Hindi or another language. Keep names as written.`;
 }
