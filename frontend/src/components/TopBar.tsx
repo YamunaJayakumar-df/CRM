@@ -1,6 +1,8 @@
-// TopBar: the bar above every page with search, notifications and the
-// main "+ New" action. It lives in the root layout so every page gets it.
-import { Search } from "lucide-react";
+// TopBar: the bar above every page with search, notifications, the
+// "Tell the AI" shortcut and the main "+ New" action. It lives in the root
+// layout so every page gets it.
+import { Search, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { NEW_CUSTOMER_HREF } from "@/lib/customers/customerHrefs";
 import NotificationBell from "./NotificationBell";
 import PrimaryButtonLink from "./PrimaryButtonLink";
@@ -35,6 +37,20 @@ export default function TopBar() {
       <div className="ml-auto flex items-center gap-2">
         {/* Links to Follow-ups; a red dot shows when some are due today or overdue. */}
         <NotificationBell />
+
+        {/*
+          "Tell the AI": opens the AI Assistant. Soft violet so it stands out
+          without competing with "+ New". On phones only the icon shows
+          (aria-label keeps the name for screen readers).
+        */}
+        <Link
+          href="/assistant"
+          aria-label="Tell the AI what happened"
+          className="inline-flex h-11 items-center gap-2 rounded-xl border border-primary/30 bg-primary-soft px-3 text-base font-medium text-open-ink transition-colors duration-150 hover:bg-selected sm:px-4"
+        >
+          <Sparkles size={18} strokeWidth={1.75} aria-hidden="true" />
+          <span className="hidden sm:inline">Tell the AI</span>
+        </Link>
 
         {/*
           "+ New" opens the Add customer form. A later step will turn it
