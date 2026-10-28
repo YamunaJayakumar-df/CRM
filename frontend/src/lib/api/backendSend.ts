@@ -23,6 +23,17 @@ const REQUEST_TIMEOUT_MS = 10_000;
 /** Statuses a form knows how to show; every other non-2xx status is thrown. */
 const EXPECTED_ERROR_STATUSES = [400, 404, 409];
 
+/**
+ * Optional settings for one request. Normal forms need none of them.
+ * - timeoutMs: a longer limit for slow work (the AI assistant can take ~20 s)
+ * - extraExpectedStatuses: more statuses to RETURN instead of throw, e.g. 502
+ *   and 503 for the AI assistant, so the page can say "try again" calmly
+ */
+export type SendOptions = {
+  timeoutMs?: number;
+  extraExpectedStatuses?: number[];
+};
+
 /** The HTTP methods that change data. */
 export type SendMethod = "POST" | "PATCH" | "DELETE";
 
@@ -40,6 +51,7 @@ export type BackendSendResult<T> =
  * Send JSON to a backend path with POST, PATCH or DELETE.
  * @param path Must start with "/", e.g. "/customers/12".
  * @param body Any JSON-able value; leave out for requests without a body.
+ * @param options Optional longer time limit or extra expected statuses.
  * @throws Error when the backend cannot be reached, times out, answers with
  *   an unexpected status (BackendRequestError), or sends broken success JSON.
  */
@@ -47,6 +59,7 @@ export async function backendSend<T>(
   method: SendMethod,
   path: string,
   body?: unknown,
+  options: SendOptions = {},
 ): Promise<BackendSendResult<T>> {
   if (!path.startsWith("/")) {
     throw new Error(`Backend path must start with "/", got "${path}"`);
@@ -64,7 +77,7 @@ export async function backendSend<T>(
         ? { Accept: "application/json", "Content-Type": "application/json" }
         : { Accept: "application/json" },
       body: hasBody ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS),
     });
   } catch (error) {
     throw new Error(`Could not reach the backend for ${method} ${pathname}`, {
@@ -76,7 +89,8 @@ export async function backendSend<T>(
     return { ok: true, data: await readSuccessBody<T>(response, method, pathname) };
   }
 
-  if (EXPECTED_ERROR_STATUSES.includes(response.status)) {
+  const expected = [...EXPECTED_ERROR_STATUSES, ...(options.extraExpectedStatuses ?? [])];
+  if (expected.includes(response.status)) {
     // A broken error body is not worth an error page: parseBackendError
     // turns "not JSON" (null) into a calm fallback message.
     const errorBody = await response.json().catch(() => null);
