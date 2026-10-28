@@ -1,0 +1,5 @@
+# Backend-only ignores. (node_modules and .env files are ignored by the root .gitignore.)
+
+# Prisma Client code generated from prisma/schema.prisma by "npx prisma generate".
+# It is rebuilt from the schema, so it is not committed.
+/src/generated/prisma

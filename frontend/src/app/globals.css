@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+/*
+  Design tokens for Nexora CRM (light theme: soft lavender-grey page,
+  white cards and a violet/lavender accent).
+  Every colour, font and shadow is defined ONCE here. Tailwind turns each
+  token into utility classes, e.g. --color-card -> `bg-card`, `border-card`.
+  Components use the token names, never raw hex values, so changing a
+  colour here updates the whole app. Names describe a colour's JOB
+  ("primary", "danger"), not how it looks, so a new theme only edits values.
+*/
+@theme {
+  /* Surfaces */
+  --color-page: #f7f6fb; /* page background, very light lavender-grey */
+  --color-sidebar: #f1eff8; /* sidebar, a touch deeper than the page */
+  --color-card: #ffffff; /* cards and inputs */
+  --color-hover: #ebe8f5; /* hover background */
+  --color-selected: #e5e0f7; /* active nav item */
+  --color-line: #e6e3ef; /* soft 1px borders */
+
+  /* Text */
+  --color-ink: #1f1b2e; /* main text, deep violet-black */
+  --color-muted: #635e74; /* secondary text (AA on page, sidebar, card and hover) */
+
+  /* Brand */
+  --color-primary: #6a4fd6; /* primary button (violet) */
+  --color-primary-hover: #5a3fc4; /* primary button on hover */
+  --color-on-primary: #ffffff; /* text/icons placed ON the primary colour */
+  --color-primary-soft: #efebfd; /* tinted circle/background behind primary icons */
+  --color-accent: #5b3fc4; /* links ("View all"), focus ring */
+  --color-icon: #3f3a52; /* line icons */
+
+  /* Status pills (follow-up status, customer status) */
+  --color-open-bg: #ece7fd;
+  --color-open-ink: #5b3fc4;
+  --color-done-bg: #ddf3e6;
+  --color-done-ink: #1e7a46;
+  --color-danger: #c8312f; /* "Today" / overdue dates */
+
+  /* Priority pills */
+  --color-high-bg: #fde3e3;
+  --color-high-ink: #b02a28;
+  --color-medium-bg: #fdf0d9;
+  --color-medium-ink: #9a5606;
+  --color-low-bg: #ddf3e6;
+  --color-low-ink: #1e7a46;
+
+  /* Charts (sparklines and the status donut) */
+  --color-chart-primary: #7c5cf0; /* lavender line */
+  --color-chart-red: #e5484d;
+  --color-chart-green: #22a06b;
+
+  /* Letter avatar tints (light background + matching darker text) */
+  --color-avatar-blue: #e3ecfd;
+  --color-avatar-blue-ink: #2f55d4;
+  --color-avatar-teal: #ddf4f1;
+  --color-avatar-teal-ink: #127a70;
+  --color-avatar-violet: #ece7fd;
+  --color-avatar-violet-ink: #5b3fc4;
+  --color-avatar-rose: #fde6ea;
+  --color-avatar-rose-ink: #b4324a;
+  --color-avatar-green: #ddf3e6;
+  --color-avatar-green-ink: #1e7a46;
+
+  /* Type: one extra size for the large page greeting (26px) */
+  --text-title: 1.625rem;
+  --text-title--line-height: 2.125rem;
+
+  /* Elevation: one very soft shadow for cards */
+  --shadow-soft: 0 1px 2px rgb(31 27 46 / 0.04), 0 2px 8px rgb(31 27 46 / 0.05);
+}
+
+/*
+  The font is loaded by next/font in layout.tsx, which sets --font-inter.
+  `inline` makes Tailwind use the variable where it is applied.
+*/
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Tell the browser the page is light, so scrollbars and form controls match. */
+:root {
+  color-scheme: light;
+}
+
+/* One visible focus ring for every interactive element (keyboard users). */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Turn off animations for people who ask their system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

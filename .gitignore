@@ -1,8 +1,10 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Root .gitignore for the whole repo (frontend/ and backend/).
+# Patterns without a leading "/" match in every subfolder,
+# e.g. "node_modules/" ignores frontend/node_modules and backend/node_modules.
 
 # dependencies
-/node_modules
-/.pnp
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -11,14 +13,15 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage/
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
+# build output
+# (.next/ and out/ come from Next.js in frontend/,
+#  dist/ comes from the TypeScript compiler in backend/)
+.next/
+out/
+build/
+dist/
 
 # misc
 .DS_Store
@@ -30,8 +33,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files: real secrets live in .env, .env.local, etc. and must never
+# be committed. Only the empty .env.example templates are shared.
 .env*
+!.env.example
 
 # vercel
 .vercel

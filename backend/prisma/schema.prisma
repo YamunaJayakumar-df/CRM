@@ -1,0 +1,111 @@
+// Prisma schema: describes our database tables ("models").
+// Docs: https://pris.ly/d/prisma-schema
+// The database connection URL is set in prisma.config.ts (read from backend/.env).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Whether we currently work with a customer.
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// A company we provide IT services to.
+model Customer {
+  id          Int            @id @default(autoincrement())
+  companyName String
+  contactName String?
+  // Company website or domain, e.g. "acme.com".
+  website     String?
+  // Free text, e.g. "IT Services" or "Healthcare".
+  industry    String?
+  status      CustomerStatus @default(ACTIVE)
+  email       String?
+  phone       String?
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  interactions Interaction[]
+  followUps    FollowUp[]
+
+  // Speeds up the dashboard's "customers added in the last 14 days".
+  @@index([createdAt])
+}
+
+// The kinds of contact we log with a customer.
+enum InteractionType {
+  CALL
+  EMAIL
+  MEETING
+  NOTE
+}
+
+// Something that happened with a customer (a call, an email, a meeting, a note).
+model Interaction {
+  id         Int             @id @default(autoincrement())
+  // Restrict: the database refuses to delete a customer that still has interactions.
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customerId Int
+  type       InteractionType
+  summary    String
+  occurredAt DateTime
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  // Speeds up "all interactions for this customer".
+  @@index([customerId])
+  // Speeds up "newest first" lists and the dashboard's last-14-days counts.
+  @@index([occurredAt])
+}
+
+// Whether a follow-up still needs doing.
+enum FollowUpStatus {
+  OPEN
+  DONE
+}
+
+// How urgent a follow-up is.
+enum FollowUpPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// Something someone must do for a customer by a certain day.
+model FollowUp {
+  id         Int              @id @default(autoincrement())
+  // Restrict: the database refuses to delete a customer that still has follow-ups.
+  customer   Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  customerId Int
+  title      String
+  // A plain calendar date (no time, no timezone), e.g. 2026-10-30.
+  dueDate    DateTime         @db.Date
+  status     FollowUpStatus   @default(OPEN)
+  priority   FollowUpPriority @default(MEDIUM)
+  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  // Speeds up "follow-ups of this customer" and "what is due / overdue".
+  @@index([customerId])
+  @@index([status, dueDate])
+}
+
+// One row per confirmed AI review ("ticket"), so the same Save can never be
+// applied twice (a double click or a retry gets "already saved" instead).
+model AiSave {
+  // The review's id from POST /ai/understand. Being the id makes it unique.
+  id        String   @id
+  createdAt DateTime @default(now())
+  // What was created (customer, interaction and follow-up ids), so a
+  // repeated Save gets the same answer.
+  result    Json
+}
