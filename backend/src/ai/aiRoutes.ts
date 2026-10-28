@@ -6,11 +6,16 @@
 //   3. check the AI's values (checkUnderstanding) -> problems become questions
 //   4. per customer: find, rank and decide        (planNote)
 //
+// POST /ai/save -> save the review the user CONFIRMED (no AI involved).
+//   check everything again (saveValidation) -> 400
+//   save once, all or nothing (saveReview)  -> 201 saved / 200 already saved
+//
 // Error messages to the browser stay general; the real reason is logged on
 // the server only (never the key: explainError names settings, not values).
 //
 // NOTE: no login/permission checks yet; they are added in the later Auth step.
-// Every request costs money, so this server must stay local until then.
+// Every understand request costs money, so this server must stay local until then.
+import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import { sendBadRequest } from "../shared/httpErrors.js";
 import { todayInKolkata } from "../shared/plainDate.js";
@@ -21,6 +26,8 @@ import { planNote, type FindOptions } from "./customerDecision.js";
 import { rankCustomerOptions } from "./customerMatching.js";
 import { findCustomerCandidates } from "./findCustomerCandidates.js";
 import { validateNote } from "./noteValidation.js";
+import { saveConfirmedReview } from "./saveReview.js";
+import { validateConfirmedSave } from "./saveValidation.js";
 import { explainError } from "./scriptHelpers.js";
 import { understandNote } from "./understandNote.js";
 
@@ -83,8 +90,31 @@ aiRouter.post("/understand", async (req, res) => {
   const plan = await planNote(outcome.understanding, findCustomerOptions);
 
   res.status(200).json({
+    // The "ticket number" the review screen sends back with Save, so the
+    // same review can never be saved twice. Built into Node, no package.
+    reviewId: randomUUID(),
     customers: plan.customers,
     // One list, asked together; the same question only once.
     questions: [...new Set([...plan.questions, ...valueQuestions])],
+  });
+});
+
+aiRouter.post("/save", async (req, res) => {
+  const confirmed = validateConfirmedSave(req.body);
+  if (!confirmed.ok) {
+    sendBadRequest(res, confirmed.errors);
+    return;
+  }
+
+  const outcome = await saveConfirmedReview(confirmed.data);
+  if (outcome.kind === "unknownCustomers") {
+    // 400 (not 404): the URL is fine, a value inside the body is wrong.
+    sendBadRequest(res, outcome.ids.map((id) => `Customer #${id} does not exist`));
+    return;
+  }
+  // 201 = created now; 200 = this review was already saved, nothing new.
+  res.status(outcome.kind === "saved" ? 201 : 200).json({
+    alreadySaved: outcome.kind === "alreadySaved",
+    ...outcome.result,
   });
 });

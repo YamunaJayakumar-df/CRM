@@ -33,12 +33,12 @@ Status: ✅ done · 🔜 next · ⏳ later
                           ✅ decide: pre-select / choose / create / ask (Step 3)
                                  │
  review screen  ◄──────── ⏳ review: customer + interaction + follow-ups
- (⏳ Step 6)                 (nothing saved yet)
+ (🔜 Step 6)                 (nothing saved yet)
  user picks / edits
  user clicks Save
         │
         ▼
- POST /ai/save ────────►  ⏳ check EVERYTHING again, then ONE transaction (Step 5)
+ POST /ai/save ────────►  ✅ check EVERYTHING again, then ONE transaction (Step 5)
                               → customer (if new), interaction, follow-ups
  "Saved ✓"  ◄─────────────    a repeated Save never saves twice
 ```
@@ -101,20 +101,24 @@ The database search is passed in (`findOptions`), so this file has no database c
 
 ### ✅ Step 4: `POST /ai/understand`
 - Note → check → AI → for each customer: fetch, rank, decide → review JSON.
-- **Saves nothing.** Returns `customers` (each with `understood` and `decision`) and one `questions` list. The review ID for safe saving comes with Step 5.
+- **Saves nothing.** Returns a `reviewId` (the "ticket number" for Save), `customers`
+  (each with `understood` and `decision`) and one `questions` list.
 
-### 🔜 Step 5: `POST /ai/save` (the only step that writes)
-- The backend **does not trust the screen**. It checks everything again:
-  - the customer ID must exist (any existing customer is allowed, even one not offered);
-  - a new customer goes through `validateCreateCustomer`;
-  - interactions go through `validateCreateInteraction`, follow-ups through `validateCreateFollowUp`;
-  - no interaction or follow-up for a customer that is still unresolved.
-- Everything is saved in **one transaction**: all or nothing.
-- **No double saves:** a retried or double-clicked Save with the same review ID must not
-  create records twice. This probably needs a small database change (a migration),
-  which will be shown and approved first.
+### ✅ Step 5: `POST /ai/save` (the only step that writes)
+- `saveValidation.ts`: the backend **does not trust the screen** and checks everything again:
+  - every customer is resolved: `{ "existingId": 39 }` or `{ "createNew": { ... } }`;
+    otherwise "choose a customer or create a new one", and **nothing** is saved;
+  - a new customer, the interaction and the follow-ups follow the CRM forms' rules;
+  - limits: 10 customers per save, 10 follow-ups per customer; unknown fields are rejected.
+- `saveReview.ts`: three safety layers:
+  1. **ticket check**: a `reviewId` that was already saved returns "already saved" (200), with nothing new written;
+  2. every chosen existing customer must exist (any existing one is allowed, even one not offered);
+  3. **one transaction**: customers, interactions, follow-ups and the ticket are saved together, or nothing is.
+- New table `AiSave` (migration `20261028175149_add_ai_save`) remembers used tickets.
+  Two Saves at the same moment: the database lets only one ticket in, and the other answers "already saved".
+- Tried for real: the first Save gave 201, the same Save again gave 200 "already saved", and exactly 1 customer was created.
 
-### ⏳ Step 6 (Lesson 7): review screen in the frontend
+### 🔜 Step 6 (Lesson 7): review screen in the frontend
 - A "Tell the AI" box, then cards per customer: pick or confirm the customer, edit the interaction and
   follow-ups, then **one Save** for everything (or Discard).
 
