@@ -10,7 +10,7 @@ type SoonNavItemProps = {
 export default function SoonNavItem({ label, icon }: SoonNavItemProps) {
   return (
     <span
-      className="flex h-11 items-center gap-3 rounded-xl px-3 text-base text-muted"
+      className="flex h-10 items-center gap-3 rounded-lg px-3 text-[0.9375rem] text-muted"
       aria-disabled="true"
     >
       <span className="opacity-60">{icon}</span>

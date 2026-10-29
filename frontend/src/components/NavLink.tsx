@@ -32,13 +32,15 @@ type NavLinkProps = {
 };
 
 const baseClasses =
-  "flex h-11 shrink-0 items-center gap-3 rounded-xl px-3 text-base transition-colors duration-150";
+  "flex h-10 shrink-0 items-center gap-3 rounded-lg px-3 text-[0.9375rem] transition-colors duration-150";
 
 /** The link itself, highlighted or not. */
 function NavLinkView({ href, label, icon, badge, isActive }: NavLinkProps & { isActive: boolean }) {
+  // Active: faint violet background, violet text and icon (the one place
+  // in the menu where the accent colour appears).
   const stateClasses = isActive
-    ? "bg-selected font-medium text-ink"
-    : "text-ink/80 hover:bg-hover hover:text-ink";
+    ? "bg-selected font-semibold text-accent"
+    : "text-ink/75 hover:bg-hover hover:text-ink";
 
   return (
     <Link
@@ -46,7 +48,7 @@ function NavLinkView({ href, label, icon, badge, isActive }: NavLinkProps & { is
       className={`${baseClasses} ${stateClasses}`}
       aria-current={isActive ? "page" : undefined}
     >
-      <span className="text-icon">{icon}</span>
+      <span className={isActive ? "text-accent" : "text-icon"}>{icon}</span>
       {label}
       {badge}
     </Link>
