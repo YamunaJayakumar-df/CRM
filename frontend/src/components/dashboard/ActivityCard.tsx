@@ -41,7 +41,7 @@ function ActivitySkeleton() {
 
 export default function ActivityCard() {
   return (
-    <Card title="Activity" icon={<ChartColumn size={20} strokeWidth={1.75} aria-hidden="true" />}>
+    <Card title="Activity" fullHeight icon={<ChartColumn size={20} strokeWidth={1.75} aria-hidden="true" />}>
       <Suspense fallback={<ActivitySkeleton />}>
         <ActivityContent />
       </Suspense>
