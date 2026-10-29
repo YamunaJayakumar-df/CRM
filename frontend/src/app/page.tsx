@@ -11,10 +11,13 @@
 // - `searchParams` (the ?fu=...&fq=... filter) is a Promise. We pass it down
 //   unopened and only await it inside the follow-ups card's Suspense
 //   boundary, so reading the URL does not hold up the rest of the page.
+// - Layout: stat cards; Activity chart (2/3) beside Follow-up Status (1/3);
+//   Upcoming Follow-ups; Recent Activity.
 // - Clicking a customer opens their own page (/customers/12).
 // - If the backend cannot be reached, app/error.tsx shows a friendly
 //   message with a "Try again" button.
 import { Suspense } from "react";
+import ActivityCard from "@/components/dashboard/ActivityCard";
 import DashboardGreeting from "@/components/dashboard/DashboardGreeting";
 import DashboardGreetingSkeleton from "@/components/dashboard/DashboardGreetingSkeleton";
 import FollowUpStatusCard from "@/components/dashboard/FollowUpStatusCard";
@@ -34,13 +37,19 @@ export default function DashboardPage({ searchParams }: PageProps<"/">) {
         <StatCards />
       </Suspense>
 
-      <div className="mt-8">
+      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="min-w-0 xl:col-span-2">
+          <ActivityCard />
+        </div>
+        <FollowUpStatusCard />
+      </div>
+
+      <div className="mt-6">
         <UpcomingFollowUps searchParams={searchParams} />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div className="mt-6">
         <RecentActivity />
-        <FollowUpStatusCard />
       </div>
     </>
   );
