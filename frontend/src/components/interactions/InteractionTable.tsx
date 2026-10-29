@@ -15,6 +15,7 @@ import { firstLine } from "@/lib/format/firstLine";
 import { interactionTypeLabel } from "@/lib/format/labels";
 import { interactionEditHref } from "@/lib/interactions/interactionHrefs";
 import InteractionTypePill from "./InteractionTypePill";
+import { BODY_ROW_CLASSES, HEADER_CELL_CLASSES } from "@/components/tables/tableClasses";
 
 type InteractionTableProps = {
   interactions: Interaction[];
@@ -22,7 +23,6 @@ type InteractionTableProps = {
   returnTo: string;
 };
 
-const headerCellClasses = "px-3 pb-3 text-left text-xs font-medium text-muted";
 
 export default function InteractionTable({ interactions, returnTo }: InteractionTableProps) {
   return (
@@ -30,18 +30,18 @@ export default function InteractionTable({ interactions, returnTo }: Interaction
       <table className="w-full min-w-160 border-collapse">
         <thead>
           <tr>
-            <th scope="col" className={headerCellClasses}>Type</th>
-            <th scope="col" className={headerCellClasses}>Summary</th>
-            <th scope="col" className={headerCellClasses}>Customer</th>
-            <th scope="col" className={headerCellClasses}>Date</th>
-            <th scope="col" className={headerCellClasses}>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Type</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Summary</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Customer</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Date</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>
               <span className="sr-only">Actions</span>
             </th>
           </tr>
         </thead>
         <tbody>
           {interactions.map((interaction) => (
-            <tr key={interaction.id} className="border-t border-line">
+            <tr key={interaction.id} className={BODY_ROW_CLASSES}>
               <td className="px-3 py-3">
                 <InteractionTypePill type={interaction.type} />
               </td>

@@ -19,6 +19,7 @@ import { customerPageHref } from "@/lib/customers/customerHrefs";
 import { followUpEditHref } from "@/lib/followUps/followUpHrefs";
 import { firstLine } from "@/lib/format/firstLine";
 import { displayWebsite } from "@/lib/format/safeWebsiteUrl";
+import { BODY_ROW_CLASSES, HEADER_CELL_CLASSES } from "@/components/tables/tableClasses";
 
 type FollowUpTableProps = {
   followUps: FollowUp[];
@@ -28,7 +29,6 @@ type FollowUpTableProps = {
   returnTo: string;
 };
 
-const headerCellClasses = "px-3 pb-3 text-left text-xs font-medium text-muted";
 
 export default function FollowUpTable({
   followUps,
@@ -40,12 +40,12 @@ export default function FollowUpTable({
       <table className="w-full min-w-160 border-collapse">
         <thead>
           <tr>
-            <th scope="col" className={headerCellClasses}>Customer</th>
-            <th scope="col" className={headerCellClasses}>Task</th>
-            <th scope="col" className={headerCellClasses}>Due date</th>
-            <th scope="col" className={headerCellClasses}>Status</th>
-            <th scope="col" className={headerCellClasses}>Priority</th>
-            <th scope="col" className={headerCellClasses}>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Customer</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Task</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Due date</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Status</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Priority</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -82,7 +82,7 @@ function FollowUpRow({ followUp, today, customerHref, returnTo }: FollowUpRowPro
   const notePreview = firstLine(followUp.notes);
 
   return (
-    <tr className="border-t border-line">
+    <tr className={BODY_ROW_CLASSES}>
       <td className="max-w-56 px-3 py-3">
         <Link
           href={customerHref}
