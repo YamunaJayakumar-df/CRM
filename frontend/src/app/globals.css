@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 /*
-  Design tokens for Nexora CRM (light theme: soft lavender-grey page,
-  white cards and a violet/lavender accent).
+  Design tokens for Nexora CRM (light theme: neutral light-grey page,
+  white cards and sidebar, violet used only as the accent: buttons, links,
+  the active menu item and charts). Every text colour below is checked
+  for WCAG AA contrast (4.5:1) on page, card, hover and selected.
   Every colour, font and shadow is defined ONCE here. Tailwind turns each
   token into utility classes, e.g. --color-card -> `bg-card`, `border-card`.
   Components use the token names, never raw hex values, so changing a
@@ -11,16 +13,17 @@
 */
 @theme {
   /* Surfaces */
-  --color-page: #f7f6fb; /* page background, very light lavender-grey */
-  --color-sidebar: #f1eff8; /* sidebar, a touch deeper than the page */
+  --color-page: #f6f7f9; /* page background, neutral light grey */
+  --color-sidebar: #ffffff; /* sidebar, white with a border line */
   --color-card: #ffffff; /* cards and inputs */
-  --color-hover: #ebe8f5; /* hover background */
-  --color-selected: #e5e0f7; /* active nav item */
-  --color-line: #e6e3ef; /* soft 1px borders */
+  --color-hover: #f1f2f5; /* hover background */
+  --color-selected: #f1eefd; /* active nav item: the faintest violet */
+  --color-line: #e8e9ee; /* soft 1px borders */
+  --color-table-head: #f8f9fb; /* table header row */
 
   /* Text */
-  --color-ink: #1f1b2e; /* main text, deep violet-black */
-  --color-muted: #635e74; /* secondary text (AA on page, sidebar, card and hover) */
+  --color-ink: #16171d; /* main text, near-black */
+  --color-muted: #5d6170; /* secondary text (AA on page, sidebar, card, hover, selected) */
 
   /* Brand */
   --color-primary: #6a4fd6; /* primary button (violet) */
@@ -28,7 +31,7 @@
   --color-on-primary: #ffffff; /* text/icons placed ON the primary colour */
   --color-primary-soft: #efebfd; /* tinted circle/background behind primary icons */
   --color-accent: #5b3fc4; /* links ("View all"), focus ring */
-  --color-icon: #3f3a52; /* line icons */
+  --color-icon: #474a55; /* line icons */
 
   /* Status pills (follow-up status, customer status) */
   --color-open-bg: #ece7fd;
@@ -62,25 +65,36 @@
   --color-avatar-green: #ddf3e6;
   --color-avatar-green-ink: #1e7a46;
 
-  /* Type: one extra size for the large page greeting (26px) */
+  /* Type: one extra size for page titles and the greeting (26px), and one
+     for the big numbers on stat cards (30px). Both are drawn semibold. */
   --text-title: 1.625rem;
   --text-title--line-height: 2.125rem;
+  --text-title--letter-spacing: -0.02em;
+  --text-stat: 1.875rem;
+  --text-stat--line-height: 2.25rem;
+  --text-stat--letter-spacing: -0.02em;
 
   /* Elevation: one very soft shadow for cards */
-  --shadow-soft: 0 1px 2px rgb(31 27 46 / 0.04), 0 2px 8px rgb(31 27 46 / 0.05);
+  --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.03);
 }
 
 /*
-  The font is loaded by next/font in layout.tsx, which sets --font-inter.
+  The font (DM Sans) is loaded by next/font in layout.tsx, which sets --font-dm-sans.
   `inline` makes Tailwind use the variable where it is applied.
 */
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Tell the browser the page is light, so scrollbars and form controls match. */
 :root {
   color-scheme: light;
+}
+
+/* Numbers line up in columns (tables, stat cards, dates): every digit
+   gets the same width. */
+body {
+  font-variant-numeric: tabular-nums;
 }
 
 /* One visible focus ring for every interactive element (keyboard users). */

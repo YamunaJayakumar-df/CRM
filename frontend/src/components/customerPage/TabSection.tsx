@@ -12,7 +12,7 @@ export default function TabSection({ title, action, children }: TabSectionProps)
   return (
     <section>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h3 className="text-base font-medium text-ink">{title}</h3>
+        <h3 className="text-lg font-semibold text-ink">{title}</h3>
         {action}
       </div>
       {children}

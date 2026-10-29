@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import MobileNav from "@/components/MobileNav";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import "./globals.css";
 
-// next/font downloads Inter at build time and serves it from our own site,
-// so the browser never calls Google. It exposes the font as --font-inter,
-// which globals.css uses as the default sans font.
-const inter = Inter({
-  variable: "--font-inter",
+// next/font downloads DM Sans at build time and serves it from our own site,
+// so the browser never calls Google. It exposes the font as --font-dm-sans,
+// which globals.css uses as the default sans font. DM Sans was chosen
+// (2026-10-29) for its readability in small table text.
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
 });
 
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 // sidebar on the left (or MobileNav on phones), top bar, then the page.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" className={`${dmSans.variable} h-full antialiased`}>
       <body className="min-h-full bg-page font-sans text-ink">
         <div className="flex min-h-screen">
           <Sidebar />

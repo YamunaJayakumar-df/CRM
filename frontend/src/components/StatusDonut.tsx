@@ -78,7 +78,7 @@ export default function StatusDonut({ openOnTime, overdue, completed }: StatusDo
           })}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-title font-medium text-ink">{openTotal}</span>
+          <span className="text-title font-semibold text-ink">{openTotal}</span>
           <span className="text-xs text-muted">Open</span>
         </div>
       </div>

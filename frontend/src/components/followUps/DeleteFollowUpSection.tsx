@@ -54,7 +54,7 @@ function DeleteFollowUpForm({ followUpId, returnTo }: DeleteFollowUpSectionProps
 export default function DeleteFollowUpSection(props: DeleteFollowUpSectionProps) {
   return (
     <section aria-labelledby="danger-zone-heading" className="mt-8 rounded-xl border border-line p-6">
-      <h2 id="danger-zone-heading" className="text-base font-medium text-ink">
+      <h2 id="danger-zone-heading" className="text-base font-semibold text-ink">
         Danger zone
       </h2>
       <p className="mt-1 text-sm text-muted">

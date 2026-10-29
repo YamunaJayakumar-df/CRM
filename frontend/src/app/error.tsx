@@ -25,7 +25,7 @@ export default function ErrorPage({ retry }: ErrorPageProps) {
     <Card>
       <div className="flex flex-col items-center px-4 py-12 text-center" role="alert">
         <CloudOff className="text-icon" size={28} strokeWidth={1.5} aria-hidden="true" />
-        <h1 className="mt-3 text-lg font-medium text-ink">We couldn&apos;t load this page</h1>
+        <h1 className="mt-3 text-lg font-semibold text-ink">We couldn&apos;t load this page</h1>
         <p className="mt-1 max-w-md text-base text-muted">
           The CRM server may be offline or busy. Please try again in a moment.
         </p>

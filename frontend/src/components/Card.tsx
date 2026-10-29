@@ -19,7 +19,7 @@ export default function Card({ title, icon, action, children }: CardProps) {
       {hasHeader && (
         <div className="mb-4 flex items-center justify-between gap-4">
           {title && (
-            <h2 className="flex items-center gap-2 text-lg font-medium text-ink">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-ink">
               {icon && <span className="text-icon">{icon}</span>}
               {title}
             </h2>
