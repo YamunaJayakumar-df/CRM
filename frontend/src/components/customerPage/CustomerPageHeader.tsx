@@ -31,7 +31,7 @@ export default function CustomerPageHeader({ customer, returnTo }: CustomerPageH
         <div className="flex min-w-0 items-center gap-4">
           <LetterAvatar name={customer.companyName} />
           <div className="min-w-0">
-            <h1 className="text-title font-medium break-words text-ink">{customer.companyName}</h1>
+            <h1 className="text-title font-semibold break-words text-ink">{customer.companyName}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
               <CustomerStatusBadge status={customer.status} />
               {industry !== "" && <span className="text-sm text-muted">{industry}</span>}

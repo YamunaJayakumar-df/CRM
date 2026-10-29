@@ -13,6 +13,7 @@ import type { Customer } from "@/lib/api/types";
 import { customerEditHref, customerPageHref } from "@/lib/customers/customerHrefs";
 import { displayWebsite } from "@/lib/format/safeWebsiteUrl";
 import EmptyCell from "./EmptyCell";
+import { BODY_ROW_CLASSES, HEADER_CELL_CLASSES } from "@/components/tables/tableClasses";
 
 type CustomerTableProps = {
   customers: Customer[];
@@ -20,7 +21,6 @@ type CustomerTableProps = {
   returnTo: string;
 };
 
-const headerCellClasses = "px-3 pb-3 text-left text-xs font-medium text-muted";
 const cellClasses = "px-3 py-3 text-sm text-ink";
 
 /** A table cell showing optional text, or a quiet "—" when there is none. */
@@ -38,13 +38,13 @@ export default function CustomerTable({ customers, returnTo }: CustomerTableProp
       <table className="w-full min-w-200 border-collapse">
         <thead>
           <tr>
-            <th scope="col" className={headerCellClasses}>Company</th>
-            <th scope="col" className={headerCellClasses}>Contact</th>
-            <th scope="col" className={headerCellClasses}>Email</th>
-            <th scope="col" className={headerCellClasses}>Phone</th>
-            <th scope="col" className={headerCellClasses}>Industry</th>
-            <th scope="col" className={headerCellClasses}>Status</th>
-            <th scope="col" className={headerCellClasses}>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Company</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Contact</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Email</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Phone</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Industry</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Status</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -53,7 +53,7 @@ export default function CustomerTable({ customers, returnTo }: CustomerTableProp
           {customers.map((customer) => {
             const website = displayWebsite(customer.website);
             return (
-              <tr key={customer.id} className="border-t border-line">
+              <tr key={customer.id} className={BODY_ROW_CLASSES}>
                 <td className="max-w-72 px-3 py-3">
                   <Link
                     href={customerPageHref(customer.id)}

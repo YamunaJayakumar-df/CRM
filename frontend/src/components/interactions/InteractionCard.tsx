@@ -8,7 +8,7 @@
 // Two links, side by side (links may not sit inside each other):
 // - The main one is the title. Its invisible ::after layer stretches over
 //   the whole card ("stretched link"), so clicking anywhere on the card
-//   still opens that customer's own page (/customers/12).
+//   still opens that customer's page on its Interactions tab (/customers/12?tab=interactions).
 //   With the keyboard, its focus ring shows around the title.
 // - A small pencil in the top-right corner opens the Edit page. It sits
 //   above the stretched layer (z-10), so it gets its own clicks and focus.
@@ -40,7 +40,7 @@ export default function InteractionCard({ interaction, now, returnTo }: Interact
     <article className="relative rounded-xl border border-line bg-card p-4 shadow-soft transition-colors duration-150 hover:bg-hover">
       <p className="line-clamp-2 pr-8 text-sm font-medium text-ink">
         <Link
-          href={customerPageHref(customer.id)}
+          href={customerPageHref(customer.id, "interactions")}
           className="rounded-sm after:absolute after:inset-0 after:rounded-xl"
         >
           {title}

@@ -17,8 +17,10 @@ const statusClasses: Record<FollowUpStatus, string> = {
 export default function StatusBadge({ status }: StatusBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClasses[status]}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusClasses[status]}`}
     >
+      {/* A small dot in the text colour, like a status light. */}
+      <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
       {followUpStatusLabel(status)}
     </span>
   );

@@ -65,7 +65,7 @@ export default function ReviewCardView({ card, number, onChange }: ReviewCardVie
   return (
     <section aria-labelledby={`${idPrefix}-heading`} className="rounded-xl border border-line bg-card p-6 shadow-soft">
       <div className="mb-4 flex items-start justify-between gap-4">
-        <h2 id={`${idPrefix}-heading`} className="text-lg font-medium text-ink">
+        <h2 id={`${idPrefix}-heading`} className="text-lg font-semibold text-ink">
           {heading}
         </h2>
         <button type="button" className={smallButtonClasses} onClick={() => onChange({ ...card, included: false })}>

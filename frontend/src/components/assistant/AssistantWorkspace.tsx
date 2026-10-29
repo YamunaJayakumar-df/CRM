@@ -116,7 +116,7 @@ export default function AssistantWorkspace() {
     return (
       <div className="max-w-3xl space-y-6">
         <section role="status" className="rounded-xl border border-line bg-card p-6 shadow-soft">
-          <h2 className="text-lg font-medium text-ink">{saved.result.alreadySaved ? "This note was already saved ✓" : "Saved ✓"}</h2>
+          <h2 className="text-lg font-semibold text-ink">{saved.result.alreadySaved ? "This note was already saved ✓" : "Saved ✓"}</h2>
           <ul className="mt-4 space-y-2">
             {saved.result.items.map((item, index) => (
               <li key={`${item.customerId}-${index}`} className="text-base">

@@ -3,7 +3,7 @@
 //
 // On narrow screens the table keeps its width and scrolls sideways INSIDE
 // the card (overflow-x-auto), so the page itself never scrolls sideways.
-// - The customer name opens that customer's own page (/customers/12).
+// - The customer name opens that customer's page on its Follow-ups tab (/customers/12?tab=follow-ups).
 // - "Mark done" / "Reopen" switches the status in one click and comes back
 //   to this exact view (returnTo); "Edit" opens the full form.
 import Link from "next/link";
@@ -17,6 +17,7 @@ import { followUpEditHref } from "@/lib/followUps/followUpHrefs";
 import { firstLine } from "@/lib/format/firstLine";
 import FollowUpDueDate from "./FollowUpDueDate";
 import FollowUpStatusButton from "./FollowUpStatusButton";
+import { BODY_ROW_CLASSES, HEADER_CELL_CLASSES } from "@/components/tables/tableClasses";
 
 type FollowUpsTableProps = {
   followUps: FollowUp[];
@@ -26,7 +27,6 @@ type FollowUpsTableProps = {
   returnTo: string;
 };
 
-const headerCellClasses = "px-3 pb-3 text-left text-xs font-medium text-muted";
 
 export default function FollowUpsTable({ followUps, today, returnTo }: FollowUpsTableProps) {
   return (
@@ -34,12 +34,12 @@ export default function FollowUpsTable({ followUps, today, returnTo }: FollowUps
       <table className="w-full min-w-180 border-collapse">
         <thead>
           <tr>
-            <th scope="col" className={headerCellClasses}>Customer</th>
-            <th scope="col" className={headerCellClasses}>Task</th>
-            <th scope="col" className={headerCellClasses}>Due date</th>
-            <th scope="col" className={headerCellClasses}>Status</th>
-            <th scope="col" className={headerCellClasses}>Priority</th>
-            <th scope="col" className={headerCellClasses}>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Customer</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Task</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Due date</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Status</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>Priority</th>
+            <th scope="col" className={HEADER_CELL_CLASSES}>
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -49,10 +49,10 @@ export default function FollowUpsTable({ followUps, today, returnTo }: FollowUps
             const notePreview = firstLine(followUp.notes);
 
             return (
-              <tr key={followUp.id} className="border-t border-line">
+              <tr key={followUp.id} className={BODY_ROW_CLASSES}>
                 <td className="max-w-56 px-3 py-3">
                   <Link
-                    href={customerPageHref(followUp.customer.id)}
+                    href={customerPageHref(followUp.customer.id, "follow-ups")}
                     className="group flex min-w-0 items-center gap-2 rounded-lg"
                   >
                     <LetterAvatar name={followUp.customer.companyName} size="sm" />

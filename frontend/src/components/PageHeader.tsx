@@ -19,7 +19,7 @@ export default function PageHeader({
       <div>
         <div className="flex items-center gap-3">
           {icon && <span className="text-icon">{icon}</span>}
-          <h1 className="text-title font-medium text-ink">{title}</h1>
+          <h1 className="text-title font-semibold text-ink">{title}</h1>
         </div>
         {subtitle && <p className="mt-1 text-base text-muted">{subtitle}</p>}
       </div>
