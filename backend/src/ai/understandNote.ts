@@ -3,19 +3,17 @@
 // Used by the POST /ai/understand endpoint and the lesson script
 // (npm run ai:understand). The `client` is passed in, so tests can pass a
 // FAKE client that answers instantly and costs nothing.
-//
-// Network and key problems are NOT caught here: they are thrown, and the
-// caller decides what to tell the user (see explainError in scriptHelpers.ts).
+// The call itself (refusal / not JSON / wrong shape) is askForJson.ts,
+// shared with the other AI jobs.
 import type { AzureOpenAI } from "openai";
+import { askForJson, type AskProblem, type TokenUsage } from "./askForJson.js";
 import { buildAssistantInstructions } from "./assistantInstructions.js";
 import { NOTE_UNDERSTANDING_FORMAT, type NoteUnderstanding } from "./understandingSchema.js";
-
-export type TokenUsage = { input: number; output: number };
 
 export type UnderstandOutcome =
   | { ok: true; understanding: NoteUnderstanding; tokens: TokenUsage | null }
   /** The AI answered, but not with a usable form. `detail` is for the server log only. */
-  | { ok: false; problem: "refused" | "notJson" | "wrongShape"; detail: string };
+  | { ok: false; problem: AskProblem; detail: string };
 
 /**
  * A light check that the parsed answer has the form's main shape.
@@ -51,32 +49,15 @@ export async function understandNote(
   note: string,
   today: string,
 ): Promise<UnderstandOutcome> {
-  const response = await client.chat.completions.create({
-    model: deployment,
-    messages: [
-      { role: "system", content: buildAssistantInstructions(today) },
-      { role: "user", content: note },
-    ],
-    response_format: NOTE_UNDERSTANDING_FORMAT,
+  const outcome = await askForJson(client, {
+    deployment,
+    instructions: buildAssistantInstructions(today),
+    userText: note,
+    format: NOTE_UNDERSTANDING_FORMAT,
+    hasShape: hasUnderstandingShape,
   });
-
-  const message = response.choices[0]?.message;
-  if (message?.refusal) {
-    return { ok: false, problem: "refused", detail: message.refusal };
+  if (!outcome.ok) {
+    return outcome;
   }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(message?.content ?? "");
-  } catch {
-    return { ok: false, problem: "notJson", detail: "The answer was not valid JSON." };
-  }
-  if (!hasUnderstandingShape(parsed)) {
-    return { ok: false, problem: "wrongShape", detail: "The answer did not match the form." };
-  }
-
-  const tokens = response.usage
-    ? { input: response.usage.prompt_tokens, output: response.usage.completion_tokens }
-    : null;
-  return { ok: true, understanding: parsed, tokens };
+  return { ok: true, understanding: outcome.answer, tokens: outcome.tokens };
 }
