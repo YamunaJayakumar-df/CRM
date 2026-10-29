@@ -5,7 +5,7 @@
 // About reading the clock: `new Date()` is read AFTER the backend call.
 // That await already makes this component run per request (never
 // prebuilt), so "2 hours ago" is always measured from the real "now".
-// Each title links to that customer's own page (/customers/12).
+// Each title links to that customer's page on its Interactions tab (/customers/12?tab=interactions).
 // If the backend fails, the error goes to app/error.tsx ("Try again").
 import Link from "next/link";
 import { MessagesSquare } from "lucide-react";
@@ -43,7 +43,7 @@ export default async function RecentActivityList() {
             <ActivityIcon type={interaction.type} />
             <div className="min-w-0 flex-1">
               <Link
-                href={customerPageHref(interaction.customer.id)}
+                href={customerPageHref(interaction.customer.id, "interactions")}
                 className="block truncate rounded text-sm font-medium text-ink hover:underline"
               >
                 {activityTitle(interaction.type, interaction.customer.companyName)}

@@ -3,7 +3,7 @@
 //
 // On narrow screens the table keeps its width and scrolls sideways INSIDE
 // the card (overflow-x-auto), so the page itself never scrolls sideways.
-// The customer name opens that customer's own page (/customers/12).
+// The customer name opens that customer's page on its Interactions tab (/customers/12?tab=interactions).
 // "Edit" opens the Edit page with ?returnTo= this page (same view and filters).
 import Link from "next/link";
 import { Pencil } from "lucide-react";
@@ -50,7 +50,7 @@ export default function InteractionTable({ interactions, returnTo }: Interaction
               </td>
               <td className="max-w-56 px-3 py-3">
                 <Link
-                  href={customerPageHref(interaction.customer.id)}
+                  href={customerPageHref(interaction.customer.id, "interactions")}
                   className="group flex min-w-0 items-center gap-2 rounded-lg"
                 >
                   <LetterAvatar name={interaction.customer.companyName} size="sm" />
