@@ -3,7 +3,7 @@
 //
 // On narrow screens the table keeps its width and scrolls sideways INSIDE
 // the card (overflow-x-auto), so the page itself never scrolls sideways.
-// - The customer name opens that customer's own page (/customers/12).
+// - The customer name opens that customer's page on its Follow-ups tab (/customers/12?tab=follow-ups).
 // - "Mark done" / "Reopen" switches the status in one click and comes back
 //   to this exact view (returnTo); "Edit" opens the full form.
 import Link from "next/link";
@@ -52,7 +52,7 @@ export default function FollowUpsTable({ followUps, today, returnTo }: FollowUps
               <tr key={followUp.id} className="border-t border-line">
                 <td className="max-w-56 px-3 py-3">
                   <Link
-                    href={customerPageHref(followUp.customer.id)}
+                    href={customerPageHref(followUp.customer.id, "follow-ups")}
                     className="group flex min-w-0 items-center gap-2 rounded-lg"
                   >
                     <LetterAvatar name={followUp.customer.companyName} size="sm" />

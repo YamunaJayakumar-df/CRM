@@ -3,7 +3,7 @@
 //
 // On narrow screens the table keeps its width and scrolls sideways INSIDE
 // the card (overflow-x-auto), so the page itself never scrolls sideways.
-// Clicking a customer opens that customer's own page (/customers/12).
+// Clicking a customer opens that customer's page on its Follow-ups tab (/customers/12?tab=follow-ups).
 // The last column has two small icons: a check to mark an open follow-up
 // done in one click, and a pencil to edit it. Both come back to this exact
 // dashboard view (returnTo).
@@ -56,7 +56,7 @@ export default function FollowUpTable({
               key={followUp.id}
               followUp={followUp}
               today={today}
-              customerHref={customerPageHref(followUp.customer.id)}
+              customerHref={customerPageHref(followUp.customer.id, "follow-ups")}
               returnTo={returnTo}
             />
           ))}
